@@ -1,26 +1,30 @@
 <template>
   <v-tooltip v-if="tooltip" top :bottom="bottom">
     <template v-slot:activator="{ on, attrs }">
-      <SimpleButton
-        :x-small="xsmall"
-        :small="small"
-        :color="color"
-        :icon="icon"
-        :text="text"
-        :loading="loading"
-        :disabled="disabled"
-        :on="on"
-        :attrs="attrs"
+      <v-btn
+          icon
+          :small="small"
+          :x-small="xsmall"
+          v-on="on"
+          v-bind="attrs"
+          :color="color"
+          :loading="loading"
+          :disabled="disabled"
+          @click="$emit('click')"
+      >
+        <v-icon
+            v-text="icon"
+            :small="small"
+            :x-small="xsmall"
         />
+      </v-btn>
     </template>
     <span v-text="tooltip"/>
   </v-tooltip>
 </template>
 
 <script>
-import SimpleButton from "@/components/buttons/SimpleButton";
 export default {
-  components: {SimpleButton},
   namespaced: true,
   props: {
 

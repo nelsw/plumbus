@@ -18,11 +18,14 @@
       <!-- show logout when authenticated -->
       <button v-if="$auth.isAuthenticated" @click="logout">Log out</button>
     </div>
+    <FacebookCard/>
   </div>
 </template>
 
 <script>
+import FacebookCard from "@/components/cards/FacebookCard";
 export default {
+  components: {FacebookCard},
   namespaced: true,
   methods: {
     // Log the user in
