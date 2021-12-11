@@ -1,11 +1,13 @@
 <template>
   <v-text-field
-      clearable
-      hide-details
-      v-model="model"
-      prepend-icon="mdi-filter"
-      label="Filter"
-    />
+    v-model="model"
+    autofocus
+    clearable
+    hide-details
+    ref="field"
+    placeholder="Filter"
+    prepend-icon="mdi-filter"
+  />
 </template>
 
 <script>

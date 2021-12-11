@@ -1,32 +1,24 @@
 <template>
   <v-menu
-      class="text-field-transparent"
       v-model="menu"
-      :close-on-content-click="false"
-      transition="scale-transition"
       offset-y
       max-width="290px"
       min-width="290px"
+      transition="scale-transition"
+      :close-on-content-click="false"
   >
     <template v-slot:activator="{ on, attrs }">
       <v-text-field
-          class="caption"
-          dense
-          v-model="date"
-          hide-details
-          :prefix="label"
-          readonly
-          v-bind="attrs"
           v-on="on"
+          v-bind="attrs"
+          v-model="date"
+          readonly
+          hide-details
           :disabled="busy"
           :loading="busy"
       />
     </template>
-    <v-date-picker
-        v-model="model"
-        no-title
-        @input="menu = false"
-    />
+    <v-date-picker v-model="model" no-title @input="menu = false"/>
   </v-menu>
 
 </template>
@@ -38,7 +30,6 @@ export default {
   props: {
     alpha: Boolean,
     busy: Boolean,
-    label: String,
   },
 
   data: () => ({
@@ -79,8 +70,3 @@ export default {
   },
 }
 </script>
-<style>
-.text-field-transparent  .v-input__slot {
-  background: transparent !important;
-}
-</style>
