@@ -35,7 +35,6 @@ export default {
   },
 
   methods: {
-
     updateTimestamp() {
       this.timestamp
           = this.utc
