@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar app dense clipped-left>
+  <v-app-bar app>
     <v-row no-gutters class="d-flex flex align-center">
     <v-col class="d-flex">
       <v-img max-width="48px" :src="require(`@/assets/logo.png`)" @click="$emit('handleClick')"/>
