@@ -1,8 +1,8 @@
 <template>
-  <v-app-bar app>
+  <v-app-bar app dense>
     <v-row no-gutters class="d-flex flex align-center">
     <v-col class="d-flex">
-      <v-img max-width="48px" :src="require(`@/assets/logo.png`)" @click="$emit('handleClick')"/>
+      <v-img max-width="48px" :src="require(`@/assets/logo.png`)" @click="$emit('click')"/>
     </v-col>
     <v-col class="d-flex justify-center align-center">
       <div v-text="timestamp" @click="utc = !utc"/>

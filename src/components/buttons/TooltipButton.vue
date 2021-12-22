@@ -11,6 +11,8 @@
           :loading="loading"
           :disabled="disabled"
           @click="$emit('click')"
+          @mouseenter="$emit('mouseenter', $event)"
+          @mouseleave="$emit('mouseleave', $event)"
       >
         <v-icon
             v-text="icon"
