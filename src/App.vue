@@ -1,12 +1,13 @@
 <template>
   <v-app>
-    <AppBar/>
-    <SnackBar
-        v-for="(snack, index) in getSnacks"
-        :key="index"
-        :index="index"
-        :snack="snack"
+    <AppBar
+        ref="appBar"
+        @mouseenter="fbDrawerModel = true"
+        @mouseleave="fbDrawerModel = fbDrawerPermanent"
+        @handleTickerClick="fbDrawerPermanent = !fbDrawerPermanent; fbDrawerModel = fbDrawerPermanent"
     />
+    <FacebookDrawer ref="fbDrawer" :model="fbDrawerModel" :permanent="fbDrawerPermanent"/>
+    <SnackBar v-for="(snack, index) in getSnacks" :key="index" :index="index" :snack="snack"/>
     <v-main>
       <v-container fluid>
         <router-view/>
@@ -19,17 +20,20 @@
 import {mapGetters} from "vuex";
 import AppBar from "@/components/bars/AppBar";
 import SnackBar from "@/components/bars/SnackBar";
+import FacebookDrawer from "@/components/drawers/FacebookDrawer";
 export default {
   name: 'App',
 
   components: {
-    SnackBar,
-    AppBar
-
+    AppBar,
+    FacebookDrawer,
+    SnackBar
   },
 
   data: () => ({
-    //
+    fbDrawerHover: false,
+    fbDrawerModel: false,
+    fbDrawerPermanent: false,
   }),
 
 

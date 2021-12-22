@@ -82,6 +82,13 @@ Vue.prototype.$formatPrice = e => {
   return '$' + Vue.prototype.$formatDecimal(e)
 }
 
+Vue.prototype.$formatFbPrice = e => {
+  if (!e) return ''
+  let l = e.toString().slice(0, -2);
+  let r = e.toString().slice(-2);
+  return '$' + Vue.prototype.$formatDecimal(l + '.' + r)
+}
+
 
 Vue.prototype.$debug = e => {
   console.log(e)
