@@ -54,10 +54,10 @@ export default {
   },
 
   methods: {
-    ...mapActions('inbox', ['delSnack']),
+    ...mapActions('snack', ['del']),
     close() {
       this.model = false
-      this.delSnack(this.snack)
+      this.del(this.snack)
     },
   },
 }

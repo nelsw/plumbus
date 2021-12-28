@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip v-if="tooltip" top :bottom="bottom">
+  <v-tooltip top :bottom="bottom">
     <template v-slot:activator="{ on, attrs }">
       <v-btn
           icon
