@@ -4,6 +4,7 @@ import store from '@/store'
 import vuetify from '@/plugins/vuetify'
 import router from '@/router'
 import moment from 'moment'
+import moment_tz from 'moment-timezone'
 import axios from 'axios';
 
 // Import the Auth0 configuration
@@ -28,6 +29,7 @@ Vue.use(Auth0Plugin, {
 
 Vue.config.productionTip = false
 Vue.prototype.$moment = moment
+Vue.prototype.$moment_tz = moment_tz
 Vue.prototype.$http = axios
 
 Vue.prototype.$formatDecimal = e => {
@@ -74,7 +76,7 @@ Vue.prototype.$formatDecimal = e => {
   }
 
   // rejoin left and right values; return the goodness
-  return left + "." + right
+  return left + "." + right.toString().slice(0, 2)
 }
 
 Vue.prototype.$formatPrice = e => {

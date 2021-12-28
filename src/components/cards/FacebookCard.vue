@@ -1,11 +1,14 @@
 <template>
   <v-card raised rounded elevation="24">
     <v-toolbar dense>
-      <v-icon v-text="`mdi-facebook`" class="mr-5"/>
+      <TooltipButton icon="mdi-chess-king" tooltip="Refresh" @click="fetchItems"/>
       <v-toolbar-title>
-        <span v-text="`Marketing API`"/>
-        <span class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down" v-text="`Ad Accounts | Campaigns |make  it Ads`"/>
+        <span v-text="`All Accounts`"/>
+        <span class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"
+              v-text="`Ad Accounts & Campaigns of any status.`"/>
       </v-toolbar-title>
+      <v-spacer/>
+      <FilterField ref="filter"/>
     </v-toolbar>
     <v-data-table
         dense
@@ -17,7 +20,7 @@
         :loading="loading"
         :search="$refs.filter ? $refs.filter.$data.model : ''"
         :headers="[
-          {text: 'ID',  value: 'id', align: 'start', width: 150, sortable: false},
+          {text: 'ID',  value: 'account_id', align: 'start', width: 150, sortable: false},
           {text: 'Name', value: 'name', sortable: false},
           {text: 'Status', value: 'account_status', width: 150, sortable: false},
           {text: 'Spent', value: 'amount_spent', sortable: false},
@@ -30,28 +33,6 @@
           'items-per-page-text': 'Rows',
         }"
     >
-      <template v-slot:top>
-        <div class="d-flex flex flex-row align-end ml-3">
-          <v-icon v-text="`mdi-alpha`" class="mb-1"/>
-          <div class="mr-2" style="max-width: 65px">
-            <DatePicker alpha/>
-          </div>
-          <div style="max-width: 40px">
-            <TimePicker/>
-          </div>
-          <v-icon v-text="`mdi-omega`" class="mb-1 ml-3"/>
-          <div class="mr-2" style="max-width: 65px">
-            <DatePicker/>
-          </div>
-          <div style="max-width: 40px">
-            <TimePicker/>
-          </div>
-          <SimpleButton text="search" class="ml-5" small @click="fetchItems()"/>
-          <v-spacer/>
-          <FilterField ref="filter"/>
-          <v-spacer/>
-        </div>
-      </template>
       <template v-slot:item.amount_spent="{ item }">
         {{ $formatFbPrice(item.amount_spent) }}
       </template>
@@ -66,7 +47,7 @@
       </template>
       <template v-slot:expanded-item="{ headers, item }">
         <td :colspan="headers.length">
-          <CampaignTable :items="item.campaigns.data"/>
+          <CampaignTable :items="item.campaigns"/>
         </td>
       </template>
     </v-data-table>
@@ -76,13 +57,13 @@
 <script>
 import FilterField from "@/components/fields/FilterField";
 import ExpandButton from "@/components/buttons/ExpandButton";
-import DatePicker from "@/components/pickers/DatePicker";
-import TimePicker from "@/components/pickers/TimePicker";
-import SimpleButton from "@/components/buttons/SimpleButton";
 import CampaignTable from "@/components/tables/CampaignTable";
+import TooltipButton from "@/components/buttons/TooltipButton";
+import Snack from "@/models/Snack";
+import {mapActions} from "vuex";
 
 export default {
-  components: {CampaignTable, SimpleButton, TimePicker, DatePicker, ExpandButton, FilterField},
+  components: {TooltipButton, CampaignTable, ExpandButton, FilterField},
   namespaced: true,
 
   data: () => ({
@@ -95,7 +76,7 @@ export default {
   },
 
   methods: {
-
+    ...mapActions('snack', ['add']),
     convertAccountStatus(status) {
       switch (status) {
         case 1:
@@ -125,10 +106,22 @@ export default {
 
     fetchItems() {
       this.loading = true
-      this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/fb?domain=acts`)
-          .then(result => this.items = result.data)
+          .then(result => {
+            if (result.data.length === 0) {
+              this.add(Snack.Warn("FB receiving too many requests ... try again in a minute or two"))
+            } else {
+              this.items = result.data
+            }
+          })
+          .catch(error => {
+            if (error.message === 'result.data is null' || error.message === 'e.data is null') {
+              this.add(Snack.Warn("FB receiving too many requests ... try again in a minute or two"))
+            } else {
+              this.add(Snack.Err(error))
+            }
+          })
           .finally(() => {
             this.loading = false
             this.$refs.filter.$refs.field.focus()

@@ -19,6 +19,7 @@
 <script>
 import moment from "moment";
 import MainMenu from "@/components/menus/MainMenu";
+import moment_tz from "moment-timezone";
 
 export default {
   namespaced: true,
@@ -27,7 +28,7 @@ export default {
   data: () => ({
     tickerClicked: false,
     timestamp: null,
-    utc: true,
+    utc: false,
   }),
 
   mounted() {
@@ -39,7 +40,7 @@ export default {
       this.timestamp
           = this.utc
           ? moment().utc().format("ddd, DD MMM YYYY, HH:mm:ss z")
-          : moment().format("ddd, DD MMM YYYY, hh:mm:ss a")
+          : moment_tz().tz('America/Los_Angeles').format('ddd, DD MMM YYYY, HH:mm:ss z')
       setTimeout(() => this.updateTimestamp(), 1000);
     },
   },
