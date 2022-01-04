@@ -3,51 +3,45 @@
     <v-toolbar dense>
       <TooltipButton icon="mdi-chess-king" tooltip="Refresh" @click="fetchItems"/>
       <v-toolbar-title>
-        <span v-text="`All Accounts`"/>
-        <span class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"
-              v-text="`Ad Accounts & Campaigns of any status.`"/>
+        <span v-text="`Accounts`"/>
       </v-toolbar-title>
-      <v-spacer/>
-      <FilterField ref="filter"/>
     </v-toolbar>
     <v-data-table
         dense
-        multi-sort
-        show-expand
-        sort-desc
-        sort-by="amount_spent"
+        hide-default-footer
+        sort-by="name"
+        style="cursor: pointer"
         :items="items"
         :loading="loading"
+        :items-per-page="-1"
         :search="$refs.filter ? $refs.filter.$data.model : ''"
         :headers="[
-          {text: 'ID',  value: 'account_id', align: 'start', width: 150, sortable: false},
+          {text: 'ID',  value: 'account_id', width: 150, sortable: false},
           {text: 'Name', value: 'name', sortable: false},
-          {text: 'Status', value: 'account_status', width: 150, sortable: false},
-          {text: 'Spent', value: 'amount_spent', sortable: false},
-          {text: 'Created', value: 'age', sortable: false},
-          {text: '', value: '', divider: true, sortable: false},
-          {text: '', value: 'data-table-expand', sortable: false},
+          {text: 'Status', value: 'account_status', width: 50, sortable: false},
+          {text: 'Created', value: 'created_time', width: 75, sortable: false},
+          // {text: '', value: '', divider: true, sortable: false},
         ]"
-        :footer-props="{
-          'items-per-page-options': [25, 50, 100, -1],
-          'items-per-page-text': 'Rows',
-        }"
+
+        @click:row="(item, slot) => slot.expand(!slot.isExpanded)"
     >
-      <template v-slot:item.amount_spent="{ item }">
-        {{ $formatFbPrice(item.amount_spent) }}
-      </template>
-      <template v-slot:item.age="{ item }">
-        {{ $moment().subtract(item.age, 'days').format("MM/DD/YY") }}
+      <template v-slot:top>
+        <FilterField ref="filter"/>
       </template>
       <template v-slot:item.account_status="{item}">
         {{ convertAccountStatus(item.account_status) }}
+      </template>
+      <template v-slot:item.created_time="{ item }">
+        {{ $moment(item.created_time).format("MM/DD/YY") }}
       </template>
       <template v-slot:item.data-table-expand="{isSelected, item, expand, isExpanded}">
         <ExpandButton domain="Campaigns" :expand="expand" :is-expanded="isExpanded"/>
       </template>
       <template v-slot:expanded-item="{ headers, item }">
         <td :colspan="headers.length">
-          <CampaignTable :items="item.campaigns"/>
+          <div class="d-flex flex flex-row align-start ma-2">
+            <CampaignTable :accountID="item.account_id"/>
+          </div>
         </td>
       </template>
     </v-data-table>
@@ -107,12 +101,13 @@ export default {
     fetchItems() {
       this.loading = true
       this.$http
-          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/fb?domain=acts`)
+          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/web?domain=acts`)
           .then(result => {
+            this.$debug(result)
             if (result.data.length === 0) {
               this.add(Snack.Warn("FB receiving too many requests ... try again in a minute or two"))
             } else {
-              this.items = result.data
+              this.items = Object.values(result.data)
             }
           })
           .catch(error => {

@@ -3,25 +3,22 @@
     <v-col>
       <FacebookCard/>
     </v-col>
-    <v-col>
-      <PositionCard/>
-    </v-col>
   </v-row>
-<!--  <div class="d-flex flex-column align-center justify-center">-->
-<!--    <div v-if="!$auth.loading">-->
-<!--       show login when not authenticated -->
-<!--      <button v-if="!$auth.isAuthenticated" @click="login">Log in</button>-->
-<!--       show logout when authenticated -->
-<!--      <button v-if="$auth.isAuthenticated" @click="logout">Log out</button>-->
-<!--    </div>-->
-<!--  </div>-->
+  <!--  <div class="d-flex flex-column align-center justify-center">-->
+  <!--    <div v-if="!$auth.loading">-->
+  <!--       show login when not authenticated -->
+  <!--      <button v-if="!$auth.isAuthenticated" @click="login">Log in</button>-->
+  <!--       show logout when authenticated -->
+  <!--      <button v-if="$auth.isAuthenticated" @click="logout">Log out</button>-->
+  <!--    </div>-->
+  <!--  </div>-->
 </template>
 
 <script>
 import FacebookCard from "@/components/cards/FacebookCard";
-import PositionCard from "@/components/cards/PositionCard";
+
 export default {
-  components: {PositionCard, FacebookCard},
+  components: {FacebookCard},
   namespaced: true,
   methods: {
     // Log the user in
