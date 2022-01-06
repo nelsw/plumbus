@@ -1,19 +1,41 @@
 <template>
-  <v-tooltip top>
-    <template v-slot:activator="{ on, attrs }">
-      <v-btn
-          icon
+  <div>
+    <v-tooltip
+        v-if="tooltip"
+        top
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+            icon
+            small
+            :color="color"
+            v-on="on"
+            v-bind="attrs"
+            @click="expand(!isExpanded)"
+        >
+          <v-icon
+              small
+              v-text="`mdi-chevron-${isExpanded ? 'up' : 'down'}`"
+          />
+        </v-btn>
+      </template>
+      <span
+          v-text="tooltip"
+      />
+    </v-tooltip>
+    <v-btn
+        v-else
+        icon
+        small
+        :color="color"
+        @click="expand(!isExpanded)"
+    >
+      <v-icon
           small
-          :color="color"
-          v-on="on"
-          v-bind="attrs"
-          @click="expand(!isExpanded)"
-      >
-        <v-icon small v-text="`mdi-chevron-${isExpanded ? 'up' : 'down'}`"/>
-      </v-btn>
-    </template>
-    <span v-text="`${isExpanded ? 'Collapse' : 'Expand'} ${domain}`"/>
-  </v-tooltip>
+          v-text="`mdi-chevron-${isExpanded ? 'up' : 'down'}`"
+      />
+    </v-btn>
+  </div>
 </template>
 <script>
 export default {
@@ -22,7 +44,7 @@ export default {
     color: String,
     expand: Function,
     isExpanded: Boolean,
-    domain: String,
+    tooltip: String,
   },
 }
 </script>

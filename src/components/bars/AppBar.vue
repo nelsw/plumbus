@@ -9,7 +9,7 @@
       </v-col>
       <v-col >
         <div class="d-flex justify-end align-center flex-shrink-1">
-          <TooltipButton icon="mdi-checkerboard" tooltip="Rules"/>
+          <TooltipButton icon="mdi-cards" tooltip="Rules" @click="toggleVisibility('Rule')"/>
         </div>
       </v-col>
     </v-row>
@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import {mapActions} from "vuex";
 import moment from "moment";
 import moment_tz from "moment-timezone";
 import TooltipButton from "@/components/buttons/TooltipButton";
@@ -35,6 +36,8 @@ export default {
   },
 
   methods: {
+    ...mapActions('deck', ['toggleVisibility']),
+
     updateTimestamp() {
       this.timestamp
           = this.utc
