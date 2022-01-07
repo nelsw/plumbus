@@ -7,91 +7,96 @@
       </v-toolbar-title>
       <v-spacer/>
       <TooltipButton icon="mdi-plus" tooltip="New Rule"/>
+      <TooltipButton
+          :icon="`mdi-chevron-${show ? 'up' : 'down'}`"
+          :tooltip="`${show ? 'Collapse' : 'Expand'} Rules`"
+          @click="show = !show"
+      />
     </v-toolbar>
-    <v-data-table
-        dense
-        show-expand
-        single-expand
-        item-key="id"
-        :items="items"
-        :expanded="expanded"
-        :loading="loading"
-        :headers="[
-          {text: 'ID',  value: 'id', width: 350, sortable: false},
-          {text: 'Name', value: 'name', sortable: false},
-          {text: 'Action', value: 'action', sortable: false},
-          {text: 'Created', value: 'created', width: 250, sortable: false},
-          {text: 'Updated', value: 'updated', width: 250, sortable: false},
-          {text: '', value: '', width: 0, divider: true, sortable: false},
-          {text: '', value: 'data-table-expand', align: 'center'}
-        ]"
-    >
-      <template v-slot:item.status="{ item }">
-        {{ statusText(item) }}
-      </template>
-      <template v-slot:item.created="{ item }">
-        {{ formatDatetime(item.created) }}
-      </template>
-      <template v-slot:item.updated="{ item }">
-        {{ formatDatetime(item.updated) }}
-      </template>
-      <template v-slot:item.data-table-expand="{isSelected, item, expand, isExpanded}">
-        <div class="d-flex flex flex-row align-center">
+    <v-expand-transition>
+      <v-data-table
+          v-if="show"
+          dense
+          show-expand
+          single-expand
+          hide-default-footer
+          item-key="id"
+          :items="items"
+          :expanded="expanded"
+          :items-per-page="-1"
+          :loading="loading"
+          :headers="[
+            {text: 'ID',  value: 'id', width: 350, sortable: false},
+            {text: 'Name', value: 'name', sortable: false},
+            {text: 'Action', value: 'action', sortable: false},
+            {text: 'Created', value: 'created', width: 250, sortable: false},
+            {text: 'Updated', value: 'updated', width: 250, sortable: false},
+            {text: '', value: '', width: 0, divider: true, sortable: false},
+            {text: '', value: 'data-table-expand', align: 'center'}
+          ]"
+      >
+        <template v-slot:item.status="{ item }">
+          {{ statusText(item) }}
+        </template>
+        <template v-slot:item.created="{ item }">
+          {{ formatDatetime(item.created) }}
+        </template>
+        <template v-slot:item.updated="{ item }">
+          {{ formatDatetime(item.updated) }}
+        </template>
+        <template v-slot:item.data-table-expand="{isSelected, item, expand, isExpanded}">
+          <div class="d-flex flex flex-row align-center">
+            <TooltipButton v-if="item.status" small color="warning" icon="mdi-pause" tooltip="Pause Rule"/>
+            <TooltipButton v-else  small color="success" icon="mdi-play" tooltip="Activate Rule"/>
+            <TooltipButton small color="primary" icon="mdi-pencil" tooltip="Edit Rule" @click="editRule(item)"/>
+            <TooltipButton small color="error" icon="mdi-delete" tooltip="Delete Rule" @click="deleteRule(item)"/>
+            <ExpandButton domain="Conditions" :expand="expand" :is-expanded="isExpanded"/>
+          </div>
+        </template>
+        <template v-slot:expanded-item="{ headers, item }">
 
-          <TooltipButton v-if="item.status" small color="warning" icon="mdi-pause" tooltip="Pause Rule"/>
-          <TooltipButton v-else  small color="success" icon="mdi-play" tooltip="Activate Rule"/>
-          <TooltipButton small color="primary" icon="mdi-pencil" tooltip="Edit Rule" @click="editRule(item)"/>
-          <TooltipButton small color="error" icon="mdi-delete" tooltip="Delete Rule" @click="deleteRule(item)"/>
-          <ExpandButton
-              :tooltip="`${isExpanded ? 'Collapse' : 'Expand'} Rule`"
-              :expand="expand"
-              :is-expanded="isExpanded"
-          />
-        </div>
-      </template>
-      <template v-slot:expanded-item="{ headers, item }">
+          <td :colspan="headers.length" class="pa-2">
 
-        <td :colspan="headers.length" class="pa-2">
-
-          <v-toolbar dense rounded>
-            <TooltipButton icon="mdi-cards-outline" tooltip="Rules" @click="fetchItems"/>
-            <v-toolbar-title>
-              <span v-text="`Conditions`"/>
-            </v-toolbar-title>
-            <v-spacer/>
-            <TooltipButton icon="mdi-plus" tooltip="New Rule"/>
-          </v-toolbar>
-            <v-data-table
-                dense
-                hide-default-footer
-                :items-per-page="-1"
-                :items="item.conditions"
-                :headers="[
-                  {text: 'ID',  value: 'id', width: 350, sortable: false},
-                  // {text: '', value: '', align: 'center'},
-                  {text: 'Name',  value: 'name', width: 100},
-                  {text: 'Target',  value: 'target', width: 100, sortable: false},
-                  {text: 'Operator', value: 'operator', width: 100, align: 'center', sortable: false},
-                  {text: 'Value', value: 'value', width: 100, sortable: false},
-                  {text: '', value: '', align: 'center', sortable: false},
-                  {text: 'Created', value: 'created', width: 250, sortable: false},
-                  {text: 'Updated', value: 'updated', width: 250, sortable: false},
-                  {text: '', value: '', width: 0, divider: true, sortable: false},
-                  {text: '', value: 'actions', align: 'center'}
-                ]"
-            >
-              <template v-slot:item.value="{ item }">
-                {{ valueText(item) }}
-              </template>
-              <template v-slot:item.actions="{item}">
-                <div class="d-flex flex flex-row align-center">
-                  <TooltipButton small color="error" icon="mdi-delete" tooltip="Delete Rule" @click="deleteRule(item)"/>
-                </div>
-              </template>
-        </v-data-table>
-        </td>
-      </template>
-    </v-data-table>
+            <v-toolbar dense rounded>
+              <TooltipButton icon="mdi-cards-outline" tooltip="Rules" @click="fetchItems"/>
+              <v-toolbar-title>
+                <span v-text="`Conditions`"/>
+              </v-toolbar-title>
+              <v-spacer/>
+              <TooltipButton icon="mdi-plus" tooltip="New Rule"/>
+            </v-toolbar>
+              <v-data-table
+                  dense
+                  hide-default-footer
+                  :items-per-page="-1"
+                  :items="item.conditions"
+                  :headers="[
+                    {text: 'ID',  value: 'id', width: 350, sortable: false},
+                    // {text: '', value: '', align: 'center'},
+                    {text: 'Name',  value: 'name', width: 100},
+                    {text: 'Target',  value: 'target', width: 100, sortable: false},
+                    {text: 'Operator', value: 'operator', width: 100, align: 'center', sortable: false},
+                    {text: 'Value', value: 'value', width: 100, sortable: false},
+                    {text: '', value: '', align: 'center', sortable: false},
+                    {text: 'Created', value: 'created', width: 250, sortable: false},
+                    {text: 'Updated', value: 'updated', width: 250, sortable: false},
+                    {text: '', value: '', width: 0, divider: true, sortable: false},
+                    {text: '', value: 'actions', align: 'center'}
+                  ]"
+              >
+                <template v-slot:item.value="{ item }">
+                  {{ valueText(item) }}
+                </template>
+                <template v-slot:item.actions="{item}">
+                  <div class="d-flex flex flex-row align-center">
+                    <TooltipButton small color="error" icon="mdi-delete" tooltip="Delete Rule" @click="deleteRule(item)"/>
+                  </div>
+                </template>
+          </v-data-table>
+          </td>
+        </template>
+      </v-data-table>
+    </v-expand-transition>
     <RuleDialog ref="ruleDialog" @refresh="fetchItems" />
   </v-card>
 </template>
@@ -113,6 +118,7 @@ export default {
   },
 
   data: () => ({
+    show: true,
     loading: true,
     items: [],
     expanded: [],

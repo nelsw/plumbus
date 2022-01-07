@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import FacebookCard from "@/components/cards/FacebookCard";
+import FacebookCard from "@/components/cards/AccountCard";
 import {mapGetters} from "vuex";
 import RulesCard from "@/components/cards/rule/RuleCard";
 

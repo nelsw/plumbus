@@ -19,6 +19,7 @@
 import {mapGetters} from "vuex";
 import AppBar from "@/components/bars/AppBar";
 import SnackBar from "@/components/bars/SnackBar";
+
 export default {
   name: 'App',
 

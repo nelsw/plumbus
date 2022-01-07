@@ -5,7 +5,7 @@
       <v-spacer/>
       <TooltipButton
           :icon="`mdi-chevron-${show ? 'up' : 'down'}`"
-          :tooltip="`${show ? 'Collapse' : 'Expand'}`"
+          :tooltip="`${show ? 'Collapse' : 'Expand'} Conditions`"
           @click="show = !show"
       />
     </v-toolbar>
