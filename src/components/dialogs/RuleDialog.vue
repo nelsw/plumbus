@@ -8,7 +8,7 @@
         <br>
         <RuleDescription :item="item"/>
         <br>
-        <RuleScope ref="ruleScope" :item="item"/>
+        <RuleScope :item="item"/>
         <br>
         <RuleConditions :item="item"/>
       </v-card-text>
@@ -35,7 +35,7 @@ export default {
   data: () => ({
     visible: false,
     busy: true,
-    item: {},
+    item: null,
   }),
 
   methods: {
@@ -46,9 +46,16 @@ export default {
           : {
             id: '',
             name: 'New Rule',
-            scope: 'All Accounts',
-            conditions: [],
-            action: '',
+            scope: [],
+            conditions: [{
+              id: null,
+              target: 'ROI',
+              operator: '<',
+              value: -2,
+              created: null,
+              updated: null
+            }],
+            action: false,
             status: true,
           }
       this.busy = false
@@ -56,7 +63,8 @@ export default {
     },
 
     save() {
-      this.$refs.ruleScope.debug()
+      this.$emit('save', this.item)
+      this.close()
     },
 
     close() {
@@ -66,7 +74,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-
-</style>

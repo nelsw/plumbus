@@ -1,12 +1,12 @@
 <template>
-  <v-card v-if="visible" raised rounded elevation="24" class="mb-3">
+  <v-card v-if="visible" raised rounded elevation="24" class="mb-3" :loading="busy" :disabled="busy">
     <v-toolbar rounded>
       <TooltipButton icon="mdi-cards" tooltip="Rules" @click="fetchItems"/>
       <v-toolbar-title>
         <span v-text="`Rules`"/>
       </v-toolbar-title>
       <v-spacer/>
-      <TooltipButton icon="mdi-plus" tooltip="New Rule"/>
+      <TooltipButton icon="mdi-plus" tooltip="New Rule" @click="$refs.ruleDialog.load()"/>
       <TooltipButton
           :icon="`mdi-chevron-${show ? 'up' : 'down'}`"
           :tooltip="`${show ? 'Collapse' : 'Expand'} Rules`"
@@ -17,26 +17,27 @@
       <v-data-table
           v-if="show"
           dense
-          show-expand
-          single-expand
           hide-default-footer
           item-key="id"
           :items="items"
-          :expanded="expanded"
           :items-per-page="-1"
           :loading="loading"
           :headers="[
             {text: 'ID',  value: 'id', width: 350, sortable: false},
             {text: 'Name', value: 'name', sortable: false},
-            {text: 'Action', value: 'action', sortable: false},
-            {text: 'Created', value: 'created', width: 250, sortable: false},
-            {text: 'Updated', value: 'updated', width: 250, sortable: false},
+            {text: 'Condition', value: 'condition', sortable: false},
+            {text: 'Result', value: 'action', sortable: false},
+            {text: 'Created', value: 'created', width: 0, sortable: false},
+            {text: 'Updated', value: 'updated', width: 0, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
-            {text: '', value: 'data-table-expand', align: 'center'}
+            {text: '', value: 'data-table-expand', width: 0, align: 'center'}
           ]"
       >
-        <template v-slot:item.status="{ item }">
-          {{ statusText(item) }}
+        <template v-slot:item.action="{ item }">
+          {{ (item.action ? 'Activate' : 'Disable') + ' Campaigns' }}
+        </template>
+        <template v-slot:item.condition="{ item }">
+          {{ conditionText(item) }}
         </template>
         <template v-slot:item.created="{ item }">
           {{ formatDatetime(item.created) }}
@@ -44,73 +45,57 @@
         <template v-slot:item.updated="{ item }">
           {{ formatDatetime(item.updated) }}
         </template>
-        <template v-slot:item.data-table-expand="{isSelected, item, expand, isExpanded}">
+        <template v-slot:item.data-table-expand="{isSelected, item}">
           <div class="d-flex flex flex-row align-center">
-            <TooltipButton v-if="item.status" small color="warning" icon="mdi-pause" tooltip="Pause Rule"/>
-            <TooltipButton v-else  small color="success" icon="mdi-play" tooltip="Activate Rule"/>
-            <TooltipButton small color="primary" icon="mdi-pencil" tooltip="Edit Rule" @click="editRule(item)"/>
-            <TooltipButton small color="error" icon="mdi-delete" tooltip="Delete Rule" @click="deleteRule(item)"/>
-            <ExpandButton domain="Conditions" :expand="expand" :is-expanded="isExpanded"/>
+            <TooltipButton
+                v-if="item.status"
+                small
+                color="warning"
+                icon="mdi-pause"
+                tooltip="Pause Rule"
+                @click="item.status = false; save(item)"
+            />
+            <TooltipButton
+                v-else
+                small
+                color="success"
+                icon="mdi-play"
+                tooltip="Activate Rule"
+                @click="item.status = true; save(item)"
+            />
+            <TooltipButton
+                small
+                color="primary"
+                icon="mdi-pencil"
+                tooltip="Edit Rule"
+                @click="$refs.ruleDialog.load(item)"
+            />
+            <TooltipButton
+                small
+                color="error"
+                icon="mdi-delete"
+                tooltip="Delete Rule"
+                @click="$refs.deleteDialog.load(item)"
+            />
           </div>
-        </template>
-        <template v-slot:expanded-item="{ headers, item }">
-
-          <td :colspan="headers.length" class="pa-2">
-
-            <v-toolbar dense rounded>
-              <TooltipButton icon="mdi-cards-outline" tooltip="Rules" @click="fetchItems"/>
-              <v-toolbar-title>
-                <span v-text="`Conditions`"/>
-              </v-toolbar-title>
-              <v-spacer/>
-              <TooltipButton icon="mdi-plus" tooltip="New Rule"/>
-            </v-toolbar>
-              <v-data-table
-                  dense
-                  hide-default-footer
-                  :items-per-page="-1"
-                  :items="item.conditions"
-                  :headers="[
-                    {text: 'ID',  value: 'id', width: 350, sortable: false},
-                    // {text: '', value: '', align: 'center'},
-                    {text: 'Name',  value: 'name', width: 100},
-                    {text: 'Target',  value: 'target', width: 100, sortable: false},
-                    {text: 'Operator', value: 'operator', width: 100, align: 'center', sortable: false},
-                    {text: 'Value', value: 'value', width: 100, sortable: false},
-                    {text: '', value: '', align: 'center', sortable: false},
-                    {text: 'Created', value: 'created', width: 250, sortable: false},
-                    {text: 'Updated', value: 'updated', width: 250, sortable: false},
-                    {text: '', value: '', width: 0, divider: true, sortable: false},
-                    {text: '', value: 'actions', align: 'center'}
-                  ]"
-              >
-                <template v-slot:item.value="{ item }">
-                  {{ valueText(item) }}
-                </template>
-                <template v-slot:item.actions="{item}">
-                  <div class="d-flex flex flex-row align-center">
-                    <TooltipButton small color="error" icon="mdi-delete" tooltip="Delete Rule" @click="deleteRule(item)"/>
-                  </div>
-                </template>
-          </v-data-table>
-          </td>
         </template>
       </v-data-table>
     </v-expand-transition>
-    <RuleDialog ref="ruleDialog" @refresh="fetchItems" />
+    <RuleDialog ref="ruleDialog" @refresh="fetchItems" @save="save($event)"/>
+    <BiDialog ref="deleteDialog" :title="`Delete Rule?`" text="This action is permanent ..." @yes="del($event)"/>
   </v-card>
 </template>
 
 <script>
 import Snack from "@/models/Snack";
 import TooltipButton from "@/components/buttons/TooltipButton";
-import ExpandButton from "@/components/buttons/ExpandButton";
 import moment from "moment";
 import RuleDialog from "@/components/dialogs/RuleDialog";
 import {mapActions} from "vuex";
+import BiDialog from "@/components/dialogs/BiDialog";
 
 export default {
-  components: {RuleDialog, ExpandButton, TooltipButton},
+  components: {BiDialog, RuleDialog, TooltipButton},
   namespaced: true,
 
   props: {
@@ -118,6 +103,7 @@ export default {
   },
 
   data: () => ({
+    busy: false,
     show: true,
     loading: true,
     items: [],
@@ -132,41 +118,54 @@ export default {
     ...mapActions('snack', ['add']),
 
     formatDatetime(datetime) {
-      return moment(datetime).format('ddd, DD MMM YYYY, HH:mm:ss z') + ' UTC'
+      return moment(datetime).format('MM/DD/YY')
     },
 
-    editRule(item) {
-      this.$refs.ruleDialog.load(item)
+    conditionText(item) {
+
+      let text = ''
+
+      item.conditions.forEach(condition => {
+        let parts = []
+        if (text === '') {
+          parts.push('if ')
+        } else {
+          parts.push(' and ')
+        }
+        parts.push('(')
+        parts.push(condition.target)
+        parts.push(' ')
+        parts.push(condition.operator)
+        parts.push(' ')
+        parts.push(condition.value.toString())
+        parts.push(')')
+        text += parts.join('')
+      })
+
+      return text
     },
 
-    deleteRule(item) {
-      this.loading = true
+    del(item) {
+      this.busy = true
       this.$http
           .delete(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule?id=${item.id}`)
-          .then(() => this.fetchItems())
+          .then(() => this.items.splice(this.items.indexOf(this.items.find(i => i.id === item.id)), 1))
           .catch(error => this.add(Snack.Err(error)))
+          .finally(() => this.busy = false)
     },
 
-    enableRule(item) {
-      item.enabled = true
-      this.updateItem(item)
-    },
-
-    disableRule(item) {
-      item.enabled = false
-      this.updateItem(item)
-    },
-
-    updateItem(item) {
-      console.log(item)
-    },
-
-    statusText(item) {
-      return item.status ? 'Active' : 'Paused'
-    },
-
-    valueText(item) {
-      return this.$formatPrice(item.value)
+    save(item) {
+      this.busy = true
+      this.$http
+          .put(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`, item)
+          .then(result => {
+            if (item.id) {
+              this.items.splice(this.items.indexOf(this.items.find(i => i.id === item.id)), 1)
+            }
+            this.items.push(result.data)
+          })
+          .catch(error => this.add(Snack.Err(error)))
+          .finally(() => this.busy = false)
     },
 
     fetchItems() {
@@ -174,15 +173,11 @@ export default {
       this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`)
-          .then(result => {
-            this.items = result.data
-            this.$debug(this.items)
-          })
+          .then(result => this.items = result.data)
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.loading = false)
     },
   },
-
 
 
 }

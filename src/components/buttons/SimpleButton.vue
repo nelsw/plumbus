@@ -6,7 +6,7 @@
       :small="small"
       :x-small="xsmall"
       :outlined="text && text.match(/no|cancel/) !== null"
-      :color="color ? color : text && text.match(/save|ok|yes|delete|search|create/) ? 'primary' : ''"
+      :color="color ? color : text && text.match(/save|ok|yes|delete|search|create|continue/) ? 'primary' : ''"
       v-text="text"
       @click="$emit('click')"
   />
