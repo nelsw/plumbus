@@ -16,7 +16,11 @@
             <v-text-field label="Name" v-model="item.name" autofocus/>
           </div>
           <div class="d-flex flex flex-grow-0 flex-shrink-1 pl-2">
-            <v-switch dense v-model="item.status" label="Active"/>
+            <v-switch
+                dense
+                v-model="item.status"
+                :label="`${item.status ? 'Active' : 'Disabled'}`"
+            />
           </div>
         </div>
       </div>

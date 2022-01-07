@@ -10,15 +10,14 @@
       />
     </v-toolbar>
     <v-expand-transition>
-      <div v-if="show">
-        <v-card class="mx-auto overflow-y-auto" max-height="400">
+      <v-card v-if="show" class="mx-auto overflow-y-auto" max-height="400">
           <v-card-text class="mx-auto">
             <v-list dense>
               <v-list-item dense v-for="(item, index) in item.conditions" :key="index">
                 <v-list-item-content>
                   <div class="d-flex flex align-center justify-space-between">
                     <div
-                        style="width: 40px"
+                        style="width: 30px"
                         class="d-flex flex mt-1"
                         v-text="`${index > 0 ? 'and' : 'if'}`"
                     />
@@ -45,14 +44,8 @@
                       />
                     </div>
                     <div class="d-flex flex">
-                      <PercentField
-                          v-if="item.target === 'ROI'"
-                          :item="item"
-                      />
-                      <DollarField
-                          v-else
-                          :item="item"
-                      />
+                      <PercentField v-if="item.target === 'ROI'" :item="item"/>
+                      <DollarField v-else :item="item"/>
                     </div>
                     <div class="d-flex flex align-center flex-shrink-1 flex-grow-0 mt-2">
                       <TooltipButton
@@ -97,7 +90,6 @@
             </v-list>
           </v-card-text>
         </v-card>
-      </div>
     </v-expand-transition>
   </v-card>
 </template>

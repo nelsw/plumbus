@@ -11,36 +11,34 @@
     </v-toolbar>
     <v-expand-transition>
       <div v-if="show">
-
         <div class="d-flex flex flex-row align-center justify-space-around px-4 mb-1">
-
           <div class="d-flex flex">
             <v-checkbox
                 v-model="selectAllModel"
-                :indeterminate="indeterminateModel"
+                :indeterminate="indeterminateSelection"
                 label="Select All"
-                @click="handleSelectAllClick"
+                @click="handleSelectAll"
                 hide-details
             />
           </div>
-
           <div class="d-flex flex">
-  <FilterField :loading="false" :disabled="busy" ref="filter"/>
-</div>
-
-
+            <FilterField :disabled="busy" ref="filter" @change="filter = $event"/>
+          </div>
         </div>
-
         <v-card class="mx-auto overflow-y-auto" max-height="400">
           <v-card-text class="mx-auto">
             <v-list dense>
-              <v-list-item dense v-for="(item, index) in items" :key="index">
-                    <v-list-item-action class="ma-0 mr-3">
-                      <v-checkbox :input-value="item.active" color="primary" @click="handleSelectClick(item)"/>
-                    </v-list-item-action>
-                    <v-list-item-content>
-                      <v-list-item-title>{{item.name}}</v-list-item-title>
-                    </v-list-item-content>
+              <v-list-item dense v-for="(item, index) in computedItems" :key="index">
+                <v-list-item-action class="ma-0 mr-3">
+                  <v-checkbox
+                      v-model="item.active"
+                      color="primary"
+                      @click="handleSelection(item)"
+                  />
+                </v-list-item-action>
+                <v-list-item-content>
+                  <v-list-item-title v-text="item.name"/>
+                </v-list-item-content>
                 </v-list-item>
             </v-list>
           </v-card-text>
@@ -57,8 +55,9 @@ import Snack from "@/models/Snack";
 import FilterField from "@/components/fields/FilterField";
 
 export default {
-  namespaced: true,
   components: {FilterField, TooltipButton},
+
+  namespaced: true,
 
   props: {
     item: Object,
@@ -66,41 +65,26 @@ export default {
 
   data: () => ({
     selectAllModel: false,
-    indeterminateModel: false,
-    all: false,
     busy: true,
     show: true,
-    valid: true,
     items: [],
-    open: [],
-    selected: [],
+    filter: null,
   }),
 
   mounted() {
+    if (!this.item.scope) this.item.scope = []
     this.fetchItems()
   },
 
-  watch: {
-    all() {
-      let selected = []
-      if (this.all) {
-        this.items.forEach(item => {
-          if (item.children) {
-            item.children.forEach(child => selected.push(child.id))
-          }
-        })
-      }
-      this.selected = selected
-    }
-  },
-
   computed: {
-    search() {
-      if (this.$refs.filter && this.$refs.filter.model) {
-        return this.$refs.filter.model
-      }
-      return null
+    computedItems() {
+      return this.filter && this.filter !== ''
+          ? this.items.filter(item => item.id.includes(this.filter) || item.name.includes(this.filter))
+          : this.items
     },
+    indeterminateSelection() {
+      return this.item.scope && this.item.scope.length > 0 && this.item.scope.length !== this.items.length
+    }
   },
 
   methods: {
@@ -115,24 +99,22 @@ export default {
           .finally(() => this.busy = false)
     },
 
-    debug() {
-      this.$debug(this.items)
-    },
-
-    handleSelectAllClick() {
-      this.items.forEach(item => item.active = this.selectAllModel)
-      this.indeterminateModel = false
-    },
-
-    handleSelectClick(item) {
-      item.active = !item.active
-      let act = 0
+    handleSelectAll() {
+      this.item.scope = []
       this.items.forEach(item => {
+        item.active = this.selectAllModel
         if (item.active) {
-          ++act
+          this.item.scope.push(item.id)
         }
       })
-      this.indeterminateModel = act > 0 && act !== this.items.length
+    },
+
+    handleSelection(item) {
+      if (item.active) {
+        this.item.scope.push(item.id)
+      } else {
+        this.item.scope.splice(this.item.scope.indexOf(item.id), 1)
+      }
     },
   },
 }

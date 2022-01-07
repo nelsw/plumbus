@@ -21,6 +21,12 @@ export default {
     loading: Boolean,
   },
 
+  watch: {
+    model() {
+      this.$emit('change', this.model)
+    },
+  },
+
   data: () => ({
     model: '',
   }),
