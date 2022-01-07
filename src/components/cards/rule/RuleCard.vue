@@ -69,8 +69,8 @@
                 :headers="[
                   {text: 'ID',  value: 'id', width: 350, sortable: false},
                   // {text: '', value: '', align: 'center'},
-                  {text: 'Order',  value: 'order', width: 100},
-                  {text: 'Key',  value: 'key', width: 100, sortable: false},
+                  {text: 'Name',  value: 'name', width: 100},
+                  {text: 'Target',  value: 'target', width: 100, sortable: false},
                   {text: 'Operator', value: 'operator', width: 100, align: 'center', sortable: false},
                   {text: 'Value', value: 'value', width: 100, sortable: false},
                   {text: '', value: '', align: 'center', sortable: false},
@@ -80,12 +80,6 @@
                   {text: '', value: 'actions', align: 'center'}
                 ]"
             >
-              <template v-slot:item.key="{ item }">
-                {{ keyText(item) }}
-              </template>
-              <template v-slot:item.operator="{ item }">
-                {{ operatorText(item) }}
-              </template>
               <template v-slot:item.value="{ item }">
                 {{ valueText(item) }}
               </template>
@@ -165,17 +159,6 @@ export default {
       return item.status ? 'Active' : 'Paused'
     },
 
-    keyText(item) {
-      let s = item.key.toLowerCase()
-      let a = s.charAt(0).toUpperCase()
-      let z = s.slice(1)
-      return a + z
-    },
-
-    operatorText(item) {
-      return item.operator === 'gt' ? '>' : '<'
-    },
-
     valueText(item) {
       return this.$formatPrice(item.value)
     },
@@ -185,7 +168,10 @@ export default {
       this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`)
-          .then(result => this.items = result.data)
+          .then(result => {
+            this.items = result.data
+            this.$debug(this.items)
+          })
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.loading = false)
     },

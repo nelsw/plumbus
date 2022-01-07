@@ -11,11 +11,12 @@
         <span class="text-h5" v-text="`Rule Editor`"/>
       </v-card-title>
       <v-card-text>
-        <v-container>
-          <AccountTreeCard/>
-          <br>
-          <RuleForm :item="item"/>
-        </v-container>
+        <br>
+        <RuleDescription :item="item"/>
+        <br>
+        <RuleScope ref="ruleScope" :item="item"/>
+        <br>
+        <RuleConditions :item="item"/>
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
@@ -37,12 +38,14 @@
 
 <script>
 import SimpleButton from "@/components/buttons/SimpleButton";
-import RuleForm from "@/components/forms/RuleForm";
-import AccountTreeCard from "@/components/cards/AccountTreeCard";
+import RuleDescription from "@/components/cards/rule/editor/RuleDescription";
+import RuleScope from "@/components/cards/rule/editor/RuleScope";
+import RuleConditions from "@/components/cards/rule/editor/RuleConditions";
+
 export default {
   namespaced: true,
 
-  components: {AccountTreeCard, RuleForm, SimpleButton},
+  components: {RuleConditions, RuleScope, RuleDescription, SimpleButton},
 
   data: () => ({
     visible: false,
@@ -59,7 +62,7 @@ export default {
     },
 
     save() {
-
+      this.$refs.ruleScope.debug()
     },
 
     close() {

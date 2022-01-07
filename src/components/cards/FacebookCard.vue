@@ -1,6 +1,6 @@
 <template>
   <v-card raised rounded elevation="24">
-    <v-toolbar dense>
+    <v-toolbar>
       <TooltipButton icon="mdi-chess-king" tooltip="Refresh" @click="fetchItems"/>
       <v-toolbar-title>
         <span v-text="`Accounts`"/>
@@ -103,7 +103,6 @@ export default {
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/web?domain=acts`)
           .then(result => {
-            this.$debug(result)
             if (result.data.length === 0) {
               this.add(Snack.Warn("FB receiving too many requests ... try again in a minute or two"))
             } else {

@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import ConditionKeySelect from "@/components/selects/ConditionKeySelect";
+import ConditionKeySelect from "@/components/selects/ConditionTargetSelect";
 export default {
   components: {ConditionKeySelect},
   namespaced: true,

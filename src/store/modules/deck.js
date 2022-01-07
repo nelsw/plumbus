@@ -6,7 +6,7 @@ export default {
 
     state: () => ({
         deck: [
-            new Card('Rule', false),
+            new Card('Rule', true),
         ],
     }),
 
