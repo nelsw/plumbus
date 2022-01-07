@@ -22,8 +22,8 @@
           v-if="show"
           dense
           hide-default-footer
+          show-expand
           sort-by="name"
-          style="cursor: pointer"
           :items="computedItems"
           :expanded="expanded"
           :loading="loading"
@@ -53,7 +53,7 @@
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
             <div class="d-flex flex flex-row align-start ma-2">
-              <CampaignTable :accountID="item.account_id"/>
+              <CampaignTable :accountID="item.account_id" :items="item.children"/>
             </div>
           </td>
         </template>
@@ -134,21 +134,12 @@ export default {
     fetchItems() {
       this.loading = true
       this.$http
-          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/web?domain=acts`)
+          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/tree`)
           .then(result => {
-            if (result.data.length === 0) {
-              this.add(Snack.Warn("FB receiving too many requests ... try again in a minute or two"))
-            } else {
-              this.items = Object.values(result.data)
-            }
+            this.$debug(result)
+            this.items = result.data
           })
-          .catch(error => {
-            if (error.message === 'result.data is null' || error.message === 'e.data is null') {
-              this.add(Snack.Warn("FB receiving too many requests ... try again in a minute or two"))
-            } else {
-              this.add(Snack.Err(error))
-            }
-          })
+          .catch(error => this.add(Snack.Err(error)))
           .finally(() => {
             this.loading = false
             if (this.$refs.filter) {
