@@ -30,15 +30,6 @@
         hide-default-footer
         :items-per-page="-1"
     >
-      <template v-slot:item.spend="{ item }">
-        {{ item.spend_f }}
-      </template>
-      <template v-slot:item.revenue="{ item }">
-        {{ item.revenue_f }}
-      </template>
-      <template v-slot:item.profit="{ item }">
-        {{ item.profit_f }}
-      </template>
       <template v-slot:item.updated_time="{ item }">
         {{ $moment(item.updated_time).format("MM/DD/YY") }}
       </template>
@@ -47,8 +38,9 @@
       </template>
       <template v-slot:item.data-table-expand="{isSelected, item}">
         <div class="d-flex flex flex-row align-center">
-          <TooltipButton v-if="item.status === 'ACTIVE'" small color="warning" icon="mdi-pause" tooltip="Pause Campaign"/>
-          <TooltipButton v-else  small color="success" icon="mdi-play" tooltip="Activate Campaign"/>
+          <TooltipButton v-if="item.status === 'ACTIVE'" small color="warning" icon="mdi-pause"
+                         tooltip="Pause Campaign"/>
+          <TooltipButton v-else small color="success" icon="mdi-play" tooltip="Activate Campaign"/>
         </div>
       </template>
     </v-data-table>
@@ -67,17 +59,16 @@ export default {
   namespaced: true,
 
   props: {
-    items: Array,
     accountID: String,
   },
 
   data: () => ({
     activeOnly: true,
+    items: [],
   }),
 
   mounted() {
-    // this.fetchItems()
-    this.$refs.filter.$refs.field.focus()
+    this.fetchItems()
   },
 
   computed: {
@@ -107,14 +98,20 @@ export default {
 
     fetchItems() {
       this.loading = true
+      this.items = []
       this.$http
-      .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/web?domain=camps&id=${this.accountID}`)
-      .then(result => {
-        this.$debug(result)
-        this.items = result.data.campaigns
-      })
-      .catch(error => this.add(Snack.Err(error)))
-      .finally(() => this.loading = false)
+          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/agg?node=campaign&id=${this.accountID}`)
+          .then(result => {
+            this.$debug(result)
+            this.items = result.data
+          })
+          .catch(error => this.add(Snack.Err(error)))
+          .finally(() => {
+            this.loading = false
+            if (this.$refs.filter) {
+              this.$refs.filter.$refs.field.focus()
+            }
+          })
     }
 
   },

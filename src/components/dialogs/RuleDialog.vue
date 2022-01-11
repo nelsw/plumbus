@@ -1,5 +1,5 @@
 <template>
-  <v-dialog persistent v-model="visible" max-width="500" @keydown.esc="close" @keydown.enter="save">
+  <v-dialog persistent v-model="visible" max-width="900" @keydown.esc="close" @keydown.enter="save">
     <v-card v-if="visible" :loading="busy" :disabled="busy">
       <v-card-title>
         <span class="text-h5" v-text="`Rule Editor`"/>
@@ -8,7 +8,7 @@
         <br>
         <RuleDescription :item="item"/>
         <br>
-        <RuleScope :item="item"/>
+        <RuleScope ref="scope" :item="item"/>
         <br>
         <RuleConditions :item="item"/>
       </v-card-text>
@@ -63,8 +63,9 @@ export default {
     },
 
     save() {
-      this.$emit('save', this.item)
-      this.close()
+      this.$refs.scope.debug()
+      // this.$emit('save', this.item)
+      // this.close()
     },
 
     close() {

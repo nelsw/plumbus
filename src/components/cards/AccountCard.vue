@@ -53,7 +53,7 @@
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
             <div class="d-flex flex flex-row align-start ma-2">
-              <CampaignTable :accountID="item.account_id" :items="item.children"/>
+              <CampaignTable :accountID="item.account_id"/>
             </div>
           </td>
         </template>
@@ -133,12 +133,10 @@ export default {
 
     fetchItems() {
       this.loading = true
+      this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/tree`)
-          .then(result => {
-            this.$debug(result)
-            this.items = result.data
-          })
+          .then(result => this.items = result.data)
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => {
             this.loading = false

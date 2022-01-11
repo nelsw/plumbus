@@ -17,7 +17,6 @@
                 v-model="selectAllModel"
                 :indeterminate="indeterminateSelection"
                 label="Select All"
-                @click="handleSelectAll"
                 hide-details
             />
           </div>
@@ -27,20 +26,23 @@
         </div>
         <v-card class="mx-auto overflow-y-auto" max-height="400">
           <v-card-text class="mx-auto">
-            <v-list dense>
-              <v-list-item dense v-for="(item, index) in computedItems" :key="index">
-                <v-list-item-action class="ma-0 mr-3">
-                  <v-checkbox
-                      v-model="item.active"
-                      color="primary"
-                      @click="handleSelection(item)"
-                  />
-                </v-list-item-action>
-                <v-list-item-content>
-                  <v-list-item-title v-text="item.name"/>
-                </v-list-item-content>
-                </v-list-item>
-            </v-list>
+            <v-treeview
+                dense
+                selectable
+                open-on-click
+                selection-type="leaf"
+                selected-color="primary"
+                expand-icon="mdi-chevron-down"
+                :items="computedItems"
+                v-model="selected"
+                item-key="id"
+                @input="bar"
+                return-object
+            >
+              <template v-slot:prepend="{ item }">
+                <v-icon v-text="`mdi-chess-${item.status ? 'king' : 'queen'}`"/>
+              </template>
+            </v-treeview>
           </v-card-text>
         </v-card>
       </div>
@@ -53,6 +55,7 @@ import TooltipButton from "@/components/buttons/TooltipButton";
 import {mapActions} from "vuex";
 import Snack from "@/models/Snack";
 import FilterField from "@/components/fields/FilterField";
+import _groupBy from 'lodash/groupBy'
 
 export default {
   components: {FilterField, TooltipButton},
@@ -64,26 +67,59 @@ export default {
   },
 
   data: () => ({
+    active: [],
     selectAllModel: false,
+    indeterminateSelection: false,
     busy: true,
     show: true,
     items: [],
+    selected: [],
     filter: null,
+    allCampaigns: [],
+    allAccounts: [],
+    all: 0,
+    legend: new Map(),
+    wat: [],
+    accountCount: 0,
   }),
 
   mounted() {
-    if (!this.item.scope) this.item.scope = []
     this.fetchItems()
   },
 
   computed: {
+
     computedItems() {
-      return this.filter && this.filter !== ''
-          ? this.items.filter(item => item.id.includes(this.filter) || item.name.includes(this.filter))
-          : this.items
+      if (!this.filter || this.filter === '' || this.items.length === 0) return this.items
+      return this.items.filter(item => item.name.includes(this.filter))
     },
-    indeterminateSelection() {
-      return this.item.scope && this.item.scope.length > 0 && this.item.scope.length !== this.items.length
+    computedValue() {
+      console.log('selected')
+      this.$debug(this.selected)
+      return this.selected
+    },
+  },
+
+  watch: {
+    selectAllModel() {
+      this.selected = this.selectAllModel ? this.items : []
+    },
+    selected() {
+      console.log("selected ")
+      this.$debug(this.selected)
+      //   let sel = this.selected.length, aaa = this.allAccounts.length, ccc = this.allCampaigns.length
+      //   console.log(sel, ccc, aaa)
+      //   if (sel === 0) {
+      //     this.item.campaign_ids = []
+      //     console.log("sel === 0")
+      //   } else if (sel === this.all) {
+      //     this.item.campaign_ids = this.allCampaigns
+      //     console.log("sel === aaa || sel === ccc")
+      //   } else {
+      //     console.log("else")
+      //     this.item.campaign_ids = this.selected
+      //     this.indeterminateSelection = true
+      //   }
     }
   },
 
@@ -93,28 +129,63 @@ export default {
     fetchItems() {
       this.busy = true
       this.$http
-          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/tree`)
+          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/agg?node=root`)
           .then(result => this.items = result.data.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1))
+          .then(() => {
+            this.items.forEach(item => {
+              ++this.accountCount
+              this.legend.set(item.id, item.children.length)
+            })
+          })
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.busy = false)
     },
 
-    handleSelectAll() {
-      this.item.scope = []
-      this.items.forEach(item => {
-        item.active = this.selectAllModel
-        if (item.active) {
-          this.item.scope.push(item.id)
-        }
-      })
+    debug() {
+      this.$debug(this.item)
     },
 
-    handleSelection(item) {
-      if (item.active) {
-        this.item.scope.push(item.id)
-      } else {
-        this.item.scope.splice(this.item.scope.indexOf(item.id), 1)
+    bar(items) {
+
+      this.item.account_ids = []
+      this.item.campaign_ids = []
+
+      if (items.length === 0) {
+        this.indeterminateSelection = false
+        console.log("empty")
+        return
       }
+
+      if (items.length === 1) {
+        console.log("one item")
+        let item = items[0]
+        if (item.account_id) {
+          console.log("campaign")
+          this.item.campaign_ids.push(item.id)
+        } else {
+          console.log("account")
+          this.item.account_ids.push(item.id)
+        }
+        return
+      }
+
+      this.item.account_ids = items.filter(item => item.status).map(account => account.id)
+
+      Object.entries(_groupBy(items.filter(item => !item.status), 'account_id')).forEach(e => {
+        let key = e[0], val=e[1]
+        if (this.legend.get(key) === val.length) {
+          console.log("all kids")
+          this.item.account_ids.push(key)
+        } else {
+          console.log("partial")
+          this.item.campaign_ids.push(...val.map(v => v.id))
+        }
+      })
+
+      let aa = this.item.account_ids.length
+      let zz = this.items.length
+
+      this.indeterminateSelection = aa !== zz
     },
   },
 }
