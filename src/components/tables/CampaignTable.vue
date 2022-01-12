@@ -29,6 +29,8 @@
         ]"
         hide-default-footer
         :items-per-page="-1"
+        no-data-text="No Campaigns found for this Account"
+        no-results-text="No Campaigns found for this Account"
     >
       <template v-slot:item.updated_time="{ item }">
         {{ $moment(item.updated_time).format("MM/DD/YY") }}
@@ -38,9 +40,22 @@
       </template>
       <template v-slot:item.data-table-expand="{isSelected, item}">
         <div class="d-flex flex flex-row align-center">
-          <TooltipButton v-if="item.status === 'ACTIVE'" small color="warning" icon="mdi-pause"
-                         tooltip="Pause Campaign"/>
-          <TooltipButton v-else small color="success" icon="mdi-play" tooltip="Activate Campaign"/>
+          <TooltipButton
+              v-if="item.status === 'ACTIVE'"
+              small
+              color="warning"
+              icon="mdi-pause"
+              tooltip="Pause Campaign"
+              @click="pauseCampaign(item)"
+          />
+          <TooltipButton
+              v-else
+              small
+              color="success"
+              icon="mdi-play"
+              tooltip="Activate Campaign"
+              @click="activateCampaign(item)"
+          />
         </div>
       </template>
     </v-data-table>
@@ -82,6 +97,30 @@ export default {
   methods: {
     ...mapActions('snack', ['add']),
 
+    pauseCampaign(item) {
+      let url = 'https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/ctrl'
+      url += '?account_id=' + this.accountID
+      url += '&campaign_id=' + item.id
+      url += '&status=PAUSED'
+      this.$http
+          .put(url)
+          .then(() => this.activeOnly = false)
+          .then(() => item.status = 'PAUSED')
+          .catch(error => this.add(Snack.Err(error)))
+    },
+
+    activateCampaign(item) {
+      let url = 'https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/ctrl'
+      url += '?account_id=' + this.accountID
+      url += '&campaign_id=' + item.id
+      url += '&status=ACTIVE'
+      this.$http
+          .put(url)
+          .then(() => this.activeOnly = false)
+          .then(() => item.status = 'ACTIVE')
+          .catch(error => this.add(Snack.Err(error)))
+    },
+
     statusSwitchLabel() {
       if (this.activeOnly) {
         return `Active Only (${this.items.filter(item => item.status === 'ACTIVE').length})`
@@ -89,23 +128,17 @@ export default {
       return `Any Status (${this.items.length})`
     },
 
-    status(s) {
-      s = s.toLowerCase()
-      let a = s.charAt(0).toUpperCase()
-      let z = s.slice(1)
-      return a + z
-    },
-
     fetchItems() {
       this.loading = true
       this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/agg?node=campaign&id=${this.accountID}`)
-          .then(result => {
-            this.$debug(result)
-            this.items = result.data
+          .then(result => this.items = result.data)
+          .catch(error => {
+            if (error.response.status !== 404) {
+              this.add(Snack.Err(error))
+            }
           })
-          .catch(error => this.add(Snack.Err(error)))
           .finally(() => {
             this.loading = false
             if (this.$refs.filter) {

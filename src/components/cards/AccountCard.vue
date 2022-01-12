@@ -28,6 +28,7 @@
           :expanded="expanded"
           :loading="loading"
           :items-per-page="-1"
+          item-key="account_id"
           :search="$refs.filter ? $refs.filter.$data.model : ''"
           :headers="[
             {text: 'ID',  value: 'account_id', width: 150, sortable: false},
@@ -47,6 +48,22 @@
           <div class="d-flex flex flex-row align-center">
             <TooltipButton v-if="item.account_status === 1" small color="warning" icon="mdi-pause" tooltip="Pause Account"/>
             <TooltipButton v-else  small color="success" icon="mdi-play" tooltip="Activate Account"/>
+            <TooltipButton
+                v-if="item.account_status === 1"
+                small
+                color="warning"
+                icon="mdi-pause"
+                tooltip="Pause Campaigns"
+                @click="pauseCampaigns(item)"
+            />
+            <TooltipButton
+                v-else
+                small
+                color="success"
+                icon="mdi-play"
+                tooltip="Activate Campaigns"
+                @click="activateCampaigns(item)"
+            />
             <ExpandButton domain="Campaigns" :expand="expand" :is-expanded="isExpanded"/>
           </div>
         </template>
@@ -96,6 +113,28 @@ export default {
   methods: {
     ...mapActions('snack', ['add']),
 
+    pauseCampaigns(item) {
+      let url = 'https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/ctrl'
+      url += '?account_id=' + item.account_id
+      url += '&status=PAUSED'
+      this.$http
+          .put(url)
+          .then(() => this.activeOnly = false)
+          .then(() => item.account_status = 2)
+          .catch(error => this.add(Snack.Err(error)))
+    },
+
+    activateCampaigns(item) {
+      let url = 'https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/ctrl'
+      url += '?account_id=' + item.account_id
+      url += '&status=ACTIVE'
+      this.$http
+          .put(url)
+          .then(() => this.activeOnly = false)
+          .then(() => item.account_status = 1)
+          .catch(error => this.add(Snack.Err(error)))
+    },
+
     statusSwitchLabel() {
       if (this.activeOnly) {
         return `Active Only (${this.items.filter(item => item.account_status === 1).length})`
@@ -135,8 +174,11 @@ export default {
       this.loading = true
       this.items = []
       this.$http
-          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/tree`)
-          .then(result => this.items = result.data)
+          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/agg?node=account`)
+          .then(result => {
+            this.$debug(result)
+            this.items = result.data
+          })
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => {
             this.loading = false

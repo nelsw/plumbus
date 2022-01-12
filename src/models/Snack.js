@@ -10,7 +10,11 @@ export default class Snack {
     }
 
     static Err(e = Error) {
-        return new Snack('error', e.message)
+        let msg = e.message
+        if (e.response && e.response.statusText) {
+            msg = e.response.statusText
+        }
+        return new Snack('error', msg)
     }
 
     static Warn(text = String) {
