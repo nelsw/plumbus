@@ -24,8 +24,8 @@
                     <div class="d-flex flex">
                       <v-select
                           dense
-                          v-model="item.target"
-                          :items="['ROI', 'SPEND']"
+                          v-model="item.lhs"
+                          :items="['ROI', 'SPEND', 'PROFIT']"
                           append-icon=""
                           style="max-width: 60px"
                           hide-details
@@ -35,7 +35,7 @@
                     <div class="d-flex flex">
                       <v-select
                           dense
-                          v-model="item.operator"
+                          v-model="item.op"
                           :items="['>', '<']"
                           append-icon=""
                           style="max-width: 25px"
@@ -44,7 +44,7 @@
                       />
                     </div>
                     <div class="d-flex flex">
-                      <PercentField v-if="item.target === 'ROI'" :item="item"/>
+                      <PercentField v-if="item.lhs === 'ROI'" :item="item"/>
                       <DollarField v-else :item="item"/>
                     </div>
                     <div class="d-flex flex align-center flex-shrink-1 flex-grow-0 mt-2">
@@ -77,8 +77,10 @@
                   <v-switch
                       dense
                       class="caption ml-2"
-                      :label="`${item.action ? 'Activate' : 'Disable'}`"
-                      v-model="item.action"
+                      :label="`${item.effect === 'ACTIVE' ? 'Enable' : 'Disable'}`"
+                      v-model="item.effect"
+                      true-value="ACTIVE"
+                      false-value="PAUSED"
                   />
                 </v-list-item-content>
                 <v-list-item-content>
@@ -122,12 +124,9 @@ export default {
 
     addCondition() {
       let condition = {
-        id: null,
-        target: 'SPEND',
-        operator: '>',
-        value: 10,
-        created: null,
-        updated: null
+        lhs: 'SPEND',
+        op: '>',
+        rhs: 10,
       }
       this.item.conditions.push(condition)
     },

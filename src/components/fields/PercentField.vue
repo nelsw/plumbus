@@ -18,12 +18,18 @@ export default {
   },
 
   mounted() {
-    this.model = this.item.value.toString()
+    this.model = this.item.rhs.toString()
   },
 
   data: () => ({
     model: null,
   }),
+
+  watch: {
+    model() {
+      this.item.rhs = parseFloat(this.model)
+    }
+  },
 }
 </script>
 

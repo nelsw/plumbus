@@ -46,16 +46,16 @@ export default {
           : {
             id: '',
             name: 'New Rule',
-            scope: [],
+            scope: new Map(),
             conditions: [{
               id: null,
-              target: 'ROI',
-              operator: '<',
-              value: -2,
+              lhs: 'ROI',
+              op: '<',
+              rhs: 2,
               created: null,
               updated: null
             }],
-            action: false,
+            effect: 'PAUSED',
             status: true,
           }
       this.busy = false
@@ -64,8 +64,8 @@ export default {
 
     save() {
       this.$refs.scope.debug()
-      // this.$emit('save', this.item)
-      // this.close()
+      this.$emit('save', this.item)
+      this.close()
     },
 
     close() {

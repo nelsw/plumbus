@@ -1,33 +1,28 @@
 <template>
-  <v-card raised rounded elevation="24">
+  <v-card v-if="card.visible" raised rounded elevation="24" class="mb-3" :loading="busy" :disabled="busy">
     <v-toolbar>
-      <TooltipButton icon="mdi-chess-king" tooltip="Refresh" @click="fetchItems"/>
+      <v-icon v-text="card.icon" class="mr-3"/>
       <v-toolbar-title>
-        <span v-text="`Accounts`"/>
+        <span v-text="card.name"/>
+        <span v-text="card.subtitle" class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"/>
       </v-toolbar-title>
       <v-spacer/>
       <FilterField v-if="!loading" ref="filter"/>
       <v-spacer/>
       <v-switch v-if="!loading" v-model="activeOnly" color="primary" :label="statusSwitchLabel()" hide-details/>
       <v-spacer/>
-      <TooltipButton
-          v-if="!loading"
-          :icon="`mdi-chevron-${show ? 'up' : 'down'}`"
-          :tooltip="`${show ? 'Collapse' : 'Expand'} Accounts`"
-          @click="show = !show"
-      />
+      <ExpandButton :domain="card.name" :expand="() => {card.expanded = !card.expanded}" :is-expanded="card.expanded"/>
+      <TooltipButton icon="mdi-close" tooltip="Close" @click="card.visible = false"/>
     </v-toolbar>
     <v-expand-transition>
       <v-data-table
           v-if="show"
           dense
-          hide-default-footer
           show-expand
           sort-by="name"
           :items="computedItems"
           :expanded="expanded"
           :loading="loading"
-          :items-per-page="-1"
           item-key="account_id"
           :search="$refs.filter ? $refs.filter.$data.model : ''"
           :headers="[
@@ -35,7 +30,7 @@
             {text: 'Name', value: 'name', sortable: false},
             {text: 'Created', value: 'created_time', width: 75, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
-            {text: '', value: 'data-table-expand', width: 0, align: 'center'}
+            {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
           ]"
       >
         <template v-slot:item.account_status="{item}">
@@ -46,8 +41,6 @@
         </template>
         <template v-slot:item.data-table-expand="{isSelected, item, expand, isExpanded}">
           <div class="d-flex flex flex-row align-center">
-            <TooltipButton v-if="item.account_status === 1" small color="warning" icon="mdi-pause" tooltip="Pause Account"/>
-            <TooltipButton v-else  small color="success" icon="mdi-play" tooltip="Activate Account"/>
             <TooltipButton
                 v-if="item.account_status === 1"
                 small
@@ -64,7 +57,7 @@
                 tooltip="Activate Campaigns"
                 @click="activateCampaigns(item)"
             />
-            <ExpandButton domain="Campaigns" :expand="expand" :is-expanded="isExpanded"/>
+            <ExpandButton small domain="Account" :expand="expand" :is-expanded="isExpanded"/>
           </div>
         </template>
         <template v-slot:expanded-item="{ headers, item }">
@@ -86,12 +79,18 @@ import CampaignTable from "@/components/tables/CampaignTable";
 import TooltipButton from "@/components/buttons/TooltipButton";
 import Snack from "@/models/Snack";
 import {mapActions} from "vuex";
+import Card from "@/models/Card";
 
 export default {
   components: {TooltipButton, CampaignTable, ExpandButton, FilterField},
   namespaced: true,
 
+  props: {
+    card: Card,
+  },
+
   data: () => ({
+    busy: false,
     show: true,
     loading: true,
     items: [],
@@ -192,3 +191,8 @@ export default {
 
 }
 </script>
+<style>
+div.col-12:nth-child(3) > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > i:nth-child(1) {
+  display: none;
+}
+</style>
