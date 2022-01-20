@@ -1,14 +1,31 @@
 <template>
-  <TooltipButton small :loading="busy" :color="color" :icon="icon" :tooltip="tooltip" @click="click"/>
+  <div>
+    <TooltipButton
+        small
+        :loading="busy"
+        :color="isActive() ? 'light-green accent-3' : 'blue-grey'"
+        :icon="`mdi-toggle-switch${isActive() ? '' : '-off'}-outline`"
+        :tooltip="`${isActive() ? 'Pause' : 'Activate'} Campaign`"
+        @click="click"
+    />
+    <BiDialog
+        ref="statusDialog"
+        title="Change Account Status?"
+        text="This will update every campaign under this account ..."
+        @yes="updateAccount"
+        @no="busy=false"
+    />
+  </div>
 </template>
 
 <script>
 import TooltipButton from "@/components/buttons/TooltipButton";
 import {mapActions} from "vuex";
 import Snack from "@/models/Snack";
+import BiDialog from "@/components/dialogs/BiDialog";
 
 export default {
-  components: {TooltipButton},
+  components: {BiDialog, TooltipButton},
   namespaced: true,
 
   props: {
@@ -18,18 +35,6 @@ export default {
   data: () => ({
     busy: false,
   }),
-
-  computed: {
-    color() {
-      return this.isActive() ? 'warning' : 'success'
-    },
-    icon() {
-      return `mdi-${this.isActive() ? 'pause' : 'play'}`
-    },
-    tooltip() {
-      return `${this.isActive() ? 'Pause' : 'Activate'} Campaign`
-    },
-  },
 
   methods: {
     ...mapActions('snack', ['add']),
@@ -47,7 +52,7 @@ export default {
     click() {
       this.busy = true
       if (this.isAccount()) {
-        this.updateAccount()
+        this.$refs.statusDialog.load()
       } else {
         this.updateCampaign()
       }

@@ -11,8 +11,6 @@
           :loading="loading"
           :disabled="disabled"
           @click="$emit('click')"
-          @mouseenter="$emit('mouseenter', $event)"
-          @mouseleave="$emit('mouseleave', $event)"
       >
         <v-icon
             v-text="icon"
@@ -41,10 +39,10 @@ export default {
     disabled: Boolean,
 
     tooltip: String,
+    left: Boolean,
     right: Boolean,
     bottom: Boolean,
-    on: Object,
-    attrs: Object,
+    top: Boolean,
   },
 }
 </script>

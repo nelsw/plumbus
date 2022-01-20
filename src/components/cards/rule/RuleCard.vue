@@ -16,13 +16,16 @@
           v-if="card.expanded"
           dense
           item-key="id"
+          hide-default-footer
+          :items-per-page="-1"
           :items="items"
           :loading="loading"
           :headers="[
-            {text: 'ID',  value: 'id', width: 350, sortable: false},
-            {text: 'Name', value: 'name', sortable: false},
-            {text: 'Condition', value: 'condition', sortable: false},
-            {text: 'Result', value: 'action', sortable: false},
+            {text: 'Name', value: 'name', width: 300, sortable: false},
+            {text: '', value: '', sortable: false},
+            {text: 'Condition', value: 'condition', width: 500, sortable: false},
+            {text: 'Effect', value: 'action', width: 150, sortable: false},
+            {text: '', value: '', sortable: false},
             {text: 'Updated', value: 'updated', width: 0, sortable: false},
             {text: 'Created', value: 'created', width: 0, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
@@ -45,24 +48,24 @@
           <div class="d-flex flex flex-row align-center">
             <TooltipButton
                 small
-                color="success"
-                icon="mdi-arrow-up"
+                color="deep-purple lighten-1"
+                icon="mdi-hammer"
                 tooltip="Run Rule"
                 @click="run(item)"
             />
             <TooltipButton
                 v-if="item.status"
                 small
-                color="warning"
-                icon="mdi-pause"
+                color="light-green accent-3"
+                :icon="`mdi-toggle-switch-outline`"
                 tooltip="Pause Rule"
                 @click="item.status = false; save(item)"
             />
             <TooltipButton
                 v-else
                 small
-                color="success"
-                icon="mdi-play"
+                color="blue-grey"
+                :icon="`mdi-toggle-switch-off-outline`"
                 tooltip="Activate Rule"
                 @click="item.status = true; save(item)"
             />
@@ -76,7 +79,7 @@
             <TooltipButton
                 small
                 color="error"
-                icon="mdi-delete"
+                icon="mdi-delete-outline"
                 tooltip="Delete Rule"
                 @click="$refs.deleteDialog.load(item)"
             />

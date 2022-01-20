@@ -26,7 +26,6 @@
           item-key="account_id"
           :search="$refs.filter ? $refs.filter.$data.model : ''"
           :headers="[
-            {text: 'ID',  value: 'account_id', width: 150, sortable: false},
             {text: 'Name', value: 'name', sortable: false},
             {text: 'Created', value: 'created_time', width: 75, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
@@ -45,7 +44,12 @@
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
             <div class="d-flex flex flex-row align-start ma-2">
-              <CampaignTable :accountID="item.account_id"/>
+              <CampaignTable
+                  :fullscreen="true"
+                  :accountID="item.account_id"
+                  @open="$emit('open', item.account_id)"
+                  @close="$emit('close')"
+              />
             </div>
           </td>
         </template>
@@ -62,7 +66,7 @@ import TooltipButton from "@/components/buttons/TooltipButton";
 import Snack from "@/models/Snack";
 import {mapActions} from "vuex";
 import Card from "@/models/Card";
-import StatusButton from "@/components/buttons/StatusButton";
+import StatusButton from "@/components/buttons/AdStatusButton";
 
 export default {
   namespaced: true,

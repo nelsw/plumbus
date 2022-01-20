@@ -19,7 +19,7 @@ export default {
                 true, true, true),
 
             new Card(
-                'Portfolio',
+                'Accounts',
                 'mdi-account-cowboy-hat',
                 'Performance summaries of Accounts & Campaigns.',
                 false,true, true),

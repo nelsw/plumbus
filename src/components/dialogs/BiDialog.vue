@@ -1,11 +1,11 @@
 <template>
-  <v-dialog persistent max-width="290" v-model="visible" @keydown.esc="close" @keydown.enter="yes">
+  <v-dialog persistent max-width="290" v-model="visible" @keydown.esc="no" @keydown.enter="yes">
     <v-card>
       <v-card-title class="headline" v-text="title"/>
       <v-card-text v-text="text"/>
       <v-card-actions>
         <v-spacer/>
-        <SimpleButton small text="cancel" @click="close"/>
+        <SimpleButton small text="cancel" @click="no"/>
         <SimpleButton small text="continue" @click="yes"/>
       </v-card-actions>
     </v-card>
@@ -42,7 +42,12 @@ export default {
       this.item = null
     },
 
-    yes(){
+    no() {
+      this.$emit('no')
+      this.close()
+    },
+
+    yes() {
       this.$emit('yes', this.item)
       this.close()
     },
