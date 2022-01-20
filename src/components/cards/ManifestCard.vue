@@ -48,15 +48,15 @@
 </template>
 
 <script>
-import Card from "@/models/Card";
 import TooltipButton from "@/components/buttons/TooltipButton";
 import Snack from "@/models/Snack";
 import {mapActions} from "vuex";
+import Card from "@/models/Card";
 import ExpandButton from "@/components/buttons/ExpandButton";
 
 export default {
-  components: {ExpandButton, TooltipButton},
   namespaced: true,
+  components: {ExpandButton, TooltipButton},
 
   props: {
     card: Card,

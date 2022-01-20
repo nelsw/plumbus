@@ -13,7 +13,7 @@
     </v-toolbar>
     <v-expand-transition>
       <v-data-table
-          v-if="show"
+          v-if="card.expanded"
           dense
           item-key="id"
           :items="items"
@@ -100,8 +100,8 @@ import ExpandButton from "@/components/buttons/ExpandButton";
 import Card from "@/models/Card";
 
 export default {
-  components: {ExpandButton, BiDialog, RuleDialog, TooltipButton},
   namespaced: true,
+  components: {ExpandButton, BiDialog, RuleDialog, TooltipButton},
 
   props: {
     card: Card,

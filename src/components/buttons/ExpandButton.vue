@@ -1,5 +1,4 @@
 <template>
-  <div>
     <v-tooltip top>
       <template v-slot:activator="{ on, attrs }">
         <v-btn icon :small="small" :color="color" v-on="on" v-bind="attrs" @click="expand(!isExpanded)">
@@ -8,7 +7,6 @@
       </template>
       <span v-text="`${isExpanded ? 'Collapse' : 'Expand'} ${domain}`"/>
     </v-tooltip>
-  </div>
 </template>
 <script>
 export default {
