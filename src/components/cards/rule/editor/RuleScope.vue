@@ -88,15 +88,9 @@ export default {
   },
 
   computed: {
-
     computedItems() {
       if (!this.filter || this.filter === '' || this.items.length === 0) return this.items
       return this.items.filter(item => item.name.includes(this.filter))
-    },
-    computedValue() {
-      console.log('selected')
-      this.$debug(this.selected)
-      return this.selected
     },
   },
 
@@ -107,19 +101,6 @@ export default {
     selected() {
       console.log("selected ")
       this.$debug(this.selected)
-      //   let sel = this.selected.length, aaa = this.allAccounts.length, ccc = this.allCampaigns.length
-      //   console.log(sel, ccc, aaa)
-      //   if (sel === 0) {
-      //     this.item.campaign_ids = []
-      //     console.log("sel === 0")
-      //   } else if (sel === this.all) {
-      //     this.item.campaign_ids = this.allCampaigns
-      //     console.log("sel === aaa || sel === ccc")
-      //   } else {
-      //     console.log("else")
-      //     this.item.campaign_ids = this.selected
-      //     this.indeterminateSelection = true
-      //   }
     }
   },
 
@@ -130,11 +111,30 @@ export default {
       this.busy = true
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/agg?node=root`)
-          .then(result => this.items = result.data.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1))
+          .then(result => {
+            this.items = result.data.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1)
+          })
           .then(() => {
             this.items.forEach(item => {
               ++this.accountCount
               this.legend.set(item.id, item.children.length)
+            })
+          })
+          .then(() => {
+            Object.entries(this.item.scope).forEach(e => {
+              let k = e[0], v = e[1]
+              if (v.length === 0 && this.legend.get(k) === 0) {
+                let item = this.items.find(item => item.id === k)
+                this.selected.push(item)
+              } else if (this.legend.get(k) > 0 && v.length === 0 || v.length === this.legend.get(k)) {
+                let item = this.items.find(i => i.id === k)
+                let items = this.items.filter(i => i.account_id === k)
+                this.selected = items
+                this.selected.push(item)
+              } else {
+                let items = this.items.filter(i => i.id.includes(v))
+                this.selected = items
+              }
             })
           })
           .catch(error => this.add(Snack.Err(error)))
@@ -147,8 +147,9 @@ export default {
 
     bar(items) {
 
-      this.item.account_ids = []
-      this.item.campaign_ids = []
+      this.$debug(items)
+
+      this.item.scope = new Map();
 
       if (items.length === 0) {
         this.indeterminateSelection = false
@@ -161,28 +162,35 @@ export default {
         let item = items[0]
         if (item.account_id) {
           console.log("campaign")
-          this.item.campaign_ids.push(item.id)
+          this.item.scope.set(item.account_id,[item.id])
         } else {
           console.log("account")
-          this.item.account_ids.push(item.id)
+          this.item.scope.set(item.id,[])
         }
         return
       }
 
-      this.item.account_ids = items.filter(item => item.status).map(account => account.id)
+      console.log("many items")
 
       Object.entries(_groupBy(items.filter(item => !item.status), 'account_id')).forEach(e => {
         let key = e[0], val=e[1]
         if (this.legend.get(key) === val.length) {
           console.log("all kids")
-          this.item.account_ids.push(key)
+          this.item.scope.set(key,[])
         } else {
           console.log("partial")
-          this.item.campaign_ids.push(...val.map(v => v.id))
+          this.item.scope.set(key, val.map(v => v.id))
         }
       })
 
-      let aa = this.item.account_ids.length
+
+
+      Object.entries(_groupBy(items.filter(item => item.status), 'id')).forEach(e => {
+        let key = e[0]
+        this.item.scope.set(key,[])
+      })
+
+      let aa = this.item.scope.size
       let zz = this.items.length
 
       this.indeterminateSelection = aa !== zz

@@ -1,5 +1,5 @@
 <template>
-  <v-tooltip top :bottom="bottom">
+  <v-tooltip top :bottom="bottom" :right="right">
     <template v-slot:activator="{ on, attrs }">
       <v-btn
           icon
@@ -41,6 +41,7 @@ export default {
     disabled: Boolean,
 
     tooltip: String,
+    right: Boolean,
     bottom: Boolean,
     on: Object,
     attrs: Object,

@@ -6,25 +6,32 @@ export default {
 
     state: () => ({
         deck: [
-            new Card('Rule', true),
+            new Card(
+                'Manifest',
+                'mdi-account-tie-hat',
+                'Accounts to include or exclude from PLUMBUS.',
+                true,true, false),
+
+            new Card(
+                'Rules',
+                'mdi-account-hard-hat',
+                'Conditions to autonomously control Ad visibility.',
+                true, true, true),
+
+            new Card(
+                'Portfolio',
+                'mdi-account-cowboy-hat',
+                'Performance summaries of Accounts & Campaigns.',
+                false,true, true),
         ],
     }),
 
     getters: {
+        getDeck: state => state.deck,
         getCard: state => name => state.deck.find(card => card.name === name)
     },
 
-    actions: {
-        async toggleVisibility({commit}, name) {
-            commit('toggleVisibility', name)
-        },
-    },
+    actions: {},
 
-    mutations: {
-        toggleVisibility(state, name) {
-            if (!name) return
-            let card = state.deck.find(card => card.name === name)
-            state.deck[state.deck.indexOf(card)].visible = !card.visible
-        },
-    },
+    mutations: {},
 }

@@ -1,11 +1,6 @@
 <template>
   <v-app>
-    <AppBar
-        ref="appBar"
-        @mouseenter="fbDrawerModel = true"
-        @mouseleave="fbDrawerModel = fbDrawerPermanent"
-        @handleTickerClick="fbDrawerPermanent = !fbDrawerPermanent; fbDrawerModel = fbDrawerPermanent"
-    />
+    <AppBar/>
     <SnackBar v-for="(snack, index) in getSnacks" :key="index" :index="index" :snack="snack"/>
     <v-main>
       <v-container fluid>
@@ -27,13 +22,6 @@ export default {
     AppBar,
     SnackBar
   },
-
-  data: () => ({
-    fbDrawerHover: false,
-    fbDrawerModel: false,
-    fbDrawerPermanent: false,
-  }),
-
 
   computed: {
     ...mapGetters('snack', ['getSnacks']),
