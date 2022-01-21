@@ -40,7 +40,7 @@ export default {
     ...mapActions('snack', ['add']),
 
     isAccount() {
-      return !this.item.id
+      return this.item.included !== undefined
     },
 
     isActive() {

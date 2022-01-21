@@ -27,6 +27,7 @@
           :search="$refs.filter ? $refs.filter.$data.model : ''"
           :headers="[
             {text: 'Name', value: 'name', sortable: false},
+            {text: 'Status', value: 'status', width: 0, sortable: false},
             {text: 'Created', value: 'created_time', width: 75, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
             {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
@@ -110,8 +111,9 @@ export default {
       this.loading = true
       this.items = []
       this.$http
-          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/account?pos=all`)
+          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/account?pos=in`)
           .then(result => this.items = result.data)
+          .then(() => this.$debug(this.items))
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => {
             this.loading = false
