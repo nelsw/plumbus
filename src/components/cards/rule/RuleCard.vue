@@ -24,7 +24,7 @@
             {text: 'Name', value: 'name', width: 300, sortable: false},
             {text: '', value: '', sortable: false},
             {text: 'Condition', value: 'condition', width: 500, sortable: false},
-            {text: 'Effect', value: 'action', width: 150, sortable: false},
+            {text: 'Effect', value: 'action', width: 200, sortable: false},
             {text: '', value: '', sortable: false},
             {text: 'Updated', value: 'updated', width: 0, sortable: false},
             {text: 'Created', value: 'created', width: 0, sortable: false},
@@ -178,22 +178,14 @@ export default {
     },
 
     save(item) {
-      if (item.scope && item.scope.size > 0) {
-        item.scope = Object.fromEntries(item.scope);
-      }
       this.busy = true
       this.$http
-          .put(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`, item, {
-            headers: {
-              'content-type':'application/json',
-            }
-          })
+          .put(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`, item)
           .then(result => {
             if (item.id) {
               this.items.splice(this.items.indexOf(this.items.find(i => i.id === item.id)), 1)
             }
             this.items.push(result.data)
-            console.log(result.data)
           })
           .then(() => this.add(Snack.OK('Rule Saved!')))
           .catch(error => this.add(Snack.Err(error)))
@@ -205,10 +197,7 @@ export default {
       this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`)
-          .then(result => {
-            this.items = result.data
-            console.log(this.items)
-          })
+          .then(result => this.items = result.data)
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.loading = false)
     },

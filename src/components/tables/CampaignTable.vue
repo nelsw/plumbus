@@ -35,6 +35,7 @@
         :items-per-page="-1"
         :items="computedItems"
         :headers="[
+          {text: 'ID', value: 'id', sortable: false, width: 0},
           {text: 'Name', value: 'name', sortable: false, width: 700},
           {text: '', value: '', sortable: false},
           {text: 'Budget', value: 'daily_budget', width: 100},

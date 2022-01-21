@@ -54,8 +54,6 @@ export default {
   },
 
   data: () => ({
-    selectAllModel: false,
-    indeterminateSelection: false,
     busy: true,
     show: true,
     items: [],
@@ -129,8 +127,6 @@ export default {
       return null
     },
 
-    // todo - set selected accounts and campaigns
-    // using { "264100649065412" : { "L" : [ { "S" : "23850116984960705" } ] } }
     fetchItems() {
       this.legend = null
       this.scope = null
@@ -167,16 +163,10 @@ export default {
           .finally(() => this.busy = false)
     },
 
-    debug() {
-      this.$debug(this.item)
-      this.$debug(this.scope)
-    },
-
     setScope() {
       let m = new Map()
       this.scope.forEach((ids, id) => {
-        let got = ids.length, all = this.legend.get(id).length
-        if (got === all) {
+        if (ids.length === this.legend.get(id).length) {
           m.set(id, [])
         } else {
           m.set(id, ids)

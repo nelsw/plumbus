@@ -26,6 +26,7 @@
           item-key="account_id"
           :search="$refs.filter ? $refs.filter.$data.model : ''"
           :headers="[
+            {text: 'ID', value: 'id', sortable: false, width: 0},
             {text: 'Name', value: 'name', sortable: false},
             {text: 'Status', value: 'status', width: 0, sortable: false},
             {text: 'Created', value: 'created_time', width: 75, sortable: false},

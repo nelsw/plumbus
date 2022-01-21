@@ -64,9 +64,8 @@ export default {
 
     save() {
       this.$refs.scope.setScope()
-      console.log(this.item)
-      // this.$emit('save', this.item)
-      // this.close()
+      this.$emit('save', this.item)
+      this.close()
     },
 
     close() {
