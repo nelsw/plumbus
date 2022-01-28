@@ -7,7 +7,7 @@
         <span v-text="card.subtitle" class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"/>
       </v-toolbar-title>
       <v-spacer/>
-      <TooltipButton icon="mdi-refresh" tooltip="Refresh Accounts" @click="refreshItems"/>
+      <TooltipButton icon="mdi-sync" tooltip="Sync Accounts" @click="refreshItems"/>
       <ExpandButton :domain="card.name" :expand="() => {card.expanded = !card.expanded}" :is-expanded="card.expanded"/>
       <TooltipButton icon="mdi-close" tooltip="Close" @click="card.visible = false"/>
     </v-toolbar>
@@ -20,7 +20,6 @@
           page-text="Rows"
           :loading="loading"
           :headers="[
-            {text: 'ID',  value: 'account_id', width: 150, sortable: false},
             {text: 'Name', value: 'name', sortable: true},
             {text: 'Status', value: 'status', width: 0, sortable: false},
             {text: 'Created', value: 'created_time', width: 100, sortable: true},
@@ -35,8 +34,8 @@
           <div class="d-flex flex flex-row align-center">
             <TooltipButton
                 small
-                :color="item.included ? 'error' : 'success'"
-                :icon="`mdi-${item.included ? 'close' : 'check'}`"
+                :color="item.included ? 'blue-grey' : 'light-green accent-3'"
+                :icon="`mdi-toggle-switch${item.included ? '' : '-off'}-outline`"
                 :tooltip="`${item.included ? 'Ex' : 'In'}clude Account`"
                 @click="toggleInclusion(item)"
             />
@@ -48,15 +47,15 @@
 </template>
 
 <script>
-import Card from "@/models/Card";
 import TooltipButton from "@/components/buttons/TooltipButton";
 import Snack from "@/models/Snack";
 import {mapActions} from "vuex";
+import Card from "@/models/Card";
 import ExpandButton from "@/components/buttons/ExpandButton";
 
 export default {
-  components: {ExpandButton, TooltipButton},
   namespaced: true,
+  components: {ExpandButton, TooltipButton},
 
   props: {
     card: Card,

@@ -7,7 +7,7 @@
         <span v-text="card.subtitle" class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"/>
       </v-toolbar-title>
       <v-spacer/>
-      <FilterField v-if="!loading" ref="filter"/>
+      <FilterField v-if="!loading" :disabled="busy" ref="filter" @change="filter = $event"/>
       <v-spacer/>
       <v-switch v-if="!loading" v-model="activeOnly" color="primary" :label="statusSwitchLabel()" hide-details/>
       <v-spacer/>
@@ -16,54 +16,78 @@
     </v-toolbar>
     <v-expand-transition>
       <v-data-table
-          v-if="show"
+          v-if="card.expanded"
           dense
           show-expand
           sort-by="name"
           :items="computedItems"
           :expanded="expanded"
           :loading="loading"
-          item-key="account_id"
+          item-key="id"
+          :items-per-page="-1"
+          hide-default-footer
           :search="$refs.filter ? $refs.filter.$data.model : ''"
           :headers="[
-            {text: 'ID',  value: 'account_id', width: 150, sortable: false},
+            {text: 'ID', value: 'id', sortable: false, width: 0},
             {text: 'Name', value: 'name', sortable: false},
+            {text: '', value: '', sortable: false},
+            {text: 'Active', value: 'performance.active', width: 100},
+            {text: 'Inactive', value: 'performance.inactive', width: 100},
+            {text: '', value: '', sortable: false},
+            {text: 'Spend', value: 'performance.spend', width: 100},
+            {text: 'Revenue', value: 'performance.revenue', width: 100},
+            {text: 'Profit', value: 'performance.profit', width: 100},
+            {text: '', value: '', sortable: false},
+            {text: 'ROI', value: 'performance.roi', width: 100, align: 'right'},
+            {text: '', value: '', sortable: false},
+            {text: 'Status', value: 'status', width: 0, sortable: false},
             {text: 'Created', value: 'created_time', width: 75, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
             {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
           ]"
       >
-        <template v-slot:item.account_status="{item}">
-          {{ convertAccountStatus(item.account_status) }}
+        <template v-slot:item.performance.spend="{ item }">
+          {{ item.performance.spend_str }}
+        </template>
+        <template v-slot:item.performance.revenue="{ item }">
+          {{ item.performance.revenue_str }}
+        </template>
+        <template v-slot:item.performance.profit="{ item }">
+          {{ item.performance.profit_str }}
+        </template>
+        <template v-slot:item.performance.roi="{ item }">
+          <Chip small :float="item.performance.roi" :text="item.performance.roi_str"/>
+        </template>
+        <template v-slot:item.performance.active="{ item }">
+          {{ item.performance.active_str }}
+        </template>
+        <template v-slot:item.performance.inactive="{ item }">
+          {{ item.performance.inactive_str }}
         </template>
         <template v-slot:item.created_time="{ item }">
           {{ $moment(item.created_time).format("MM/DD/YY") }}
         </template>
         <template v-slot:item.data-table-expand="{isSelected, item, expand, isExpanded}">
           <div class="d-flex flex flex-row align-center">
-            <TooltipButton
-                v-if="item.account_status === 1"
+            <StatusButton :item="item"/>
+            <ExpandButton
                 small
-                color="warning"
-                icon="mdi-pause"
-                tooltip="Pause Campaigns"
-                @click="pauseCampaigns(item)"
+                domain="Account"
+                :expand="expand"
+                :is-expanded="isExpanded"
+                :disabled="item.performance.active + item.performance.inactive < 1"
             />
-            <TooltipButton
-                v-else
-                small
-                color="success"
-                icon="mdi-play"
-                tooltip="Activate Campaigns"
-                @click="activateCampaigns(item)"
-            />
-            <ExpandButton small domain="Account" :expand="expand" :is-expanded="isExpanded"/>
           </div>
         </template>
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
             <div class="d-flex flex flex-row align-start ma-2">
-              <CampaignTable :accountID="item.account_id"/>
+              <CampaignTable
+                  :fullscreen="true"
+                  :accountID="item.account_id"
+                  @open="$emit('open', item.account_id)"
+                  @close="$emit('close')"
+              />
             </div>
           </td>
         </template>
@@ -80,10 +104,12 @@ import TooltipButton from "@/components/buttons/TooltipButton";
 import Snack from "@/models/Snack";
 import {mapActions} from "vuex";
 import Card from "@/models/Card";
+import StatusButton from "@/components/buttons/AdStatusButton";
+import Chip from "@/components/chips/Chip";
 
 export default {
-  components: {TooltipButton, CampaignTable, ExpandButton, FilterField},
   namespaced: true,
+  components: {Chip, StatusButton, TooltipButton, CampaignTable, ExpandButton, FilterField},
 
   props: {
     card: Card,
@@ -95,7 +121,8 @@ export default {
     loading: true,
     items: [],
     expanded: [],
-    activeOnly: true,
+    activeOnly: false,
+    filter: null,
   }),
 
   mounted() {
@@ -104,35 +131,19 @@ export default {
 
   computed: {
     computedItems() {
-      if (!this.activeOnly) return this.items
-      return this.items.filter(item => item.account_status === 1)
+      let items = this.items
+      if (this.activeOnly) {
+        items = items.filter(item => item.account_status === 1)
+      }
+      if (this.filter && this.filter !== '') {
+        items = items.filter(item => item.name.toLowerCase().includes(this.filter.toLowerCase()))
+      }
+      return items
     },
   },
 
   methods: {
     ...mapActions('snack', ['add']),
-
-    pauseCampaigns(item) {
-      let url = 'https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/ctrl'
-      url += '?account_id=' + item.account_id
-      url += '&status=PAUSED'
-      this.$http
-          .put(url)
-          .then(() => this.activeOnly = false)
-          .then(() => item.account_status = 2)
-          .catch(error => this.add(Snack.Err(error)))
-    },
-
-    activateCampaigns(item) {
-      let url = 'https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/ctrl'
-      url += '?account_id=' + item.account_id
-      url += '&status=ACTIVE'
-      this.$http
-          .put(url)
-          .then(() => this.activeOnly = false)
-          .then(() => item.account_status = 1)
-          .catch(error => this.add(Snack.Err(error)))
-    },
 
     statusSwitchLabel() {
       if (this.activeOnly) {
@@ -141,43 +152,13 @@ export default {
       return `Any Status (${this.items.length})`
     },
 
-
-    convertAccountStatus(status) {
-      switch (status) {
-        case 1:
-          return 'Active'
-        case 2:
-          return 'Disabled'
-        case 3:
-          return 'Unsettled'
-        case 7:
-          return 'Pending Risk Review'
-        case 8:
-          return 'Pending Settlement'
-        case 9:
-          return 'In Grace Period'
-        case 100:
-          return 'Pending Closure'
-        case 101:
-          return 'Closed'
-        case 201:
-          return 'Any Active'
-        case 202:
-          return 'Any Closed'
-        default:
-          return 'Unknown'
-      }
-    },
-
     fetchItems() {
       this.loading = true
       this.items = []
       this.$http
-          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/agg?node=account`)
-          .then(result => {
-            this.$debug(result)
-            this.items = result.data
-          })
+          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/account?pos=in`)
+          .then(result => this.items = result.data)
+          .then(() => this.$debug(this.items))
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => {
             this.loading = false

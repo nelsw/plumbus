@@ -63,7 +63,7 @@ export default {
     },
 
     save() {
-      this.$refs.scope.debug()
+      this.$refs.scope.setScope()
       this.$emit('save', this.item)
       this.close()
     },

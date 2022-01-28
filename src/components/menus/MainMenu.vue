@@ -1,26 +1,12 @@
 <template>
-  <v-menu offset-x open-on-hover :nudge-width="200" :close-on-content-click="false">
+  <v-menu offset-x :nudge-width="200" :close-on-content-click="false" open-on-click>
     <template v-slot:activator="{ on }">
-      <v-btn icon v-on="on">
-        <v-icon v-text="`mdi-home-account`"/>
-      </v-btn>
+      <div v-on="on">
+        <TooltipButton icon="mdi-home-account" bottom tooltip="Menu" />
+      </div>
     </template>
     <v-card>
       <v-list>
-<!--        <v-list-item>-->
-<!--          <v-list-item-avatar size="36">-->
-<!--            <v-img :src="$auth.user.picture"/>-->
-<!--          </v-list-item-avatar>-->
-<!--          <v-list-item-content>-->
-<!--            <v-list-item-title v-text="getUser.name"/>-->
-<!--          </v-list-item-content>-->
-<!--          <v-list-item-action>-->
-<!--            <v-btn icon @click="setUser(null); toggleVisibility('user')">-->
-<!--              <v-icon v-text="`mdi-logout`"/>-->
-<!--            </v-btn>-->
-<!--          </v-list-item-action>-->
-<!--        </v-list-item>-->
-<!--        <v-divider/>-->
         <v-list-item v-for="card in getDeck" :key="card.name" :card="card">
           <v-list-item-icon>
             <v-icon v-text="card.icon"/>
@@ -40,8 +26,10 @@
 <script>
 
 import {mapGetters} from "vuex"
+import TooltipButton from "@/components/buttons/TooltipButton";
 
 export default {
+  components: {TooltipButton},
   namespaced: true,
 
   computed: {

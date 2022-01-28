@@ -13,16 +13,19 @@
     </v-toolbar>
     <v-expand-transition>
       <v-data-table
-          v-if="show"
+          v-if="card.expanded"
           dense
           item-key="id"
+          hide-default-footer
+          :items-per-page="-1"
           :items="items"
           :loading="loading"
           :headers="[
-            {text: 'ID',  value: 'id', width: 350, sortable: false},
-            {text: 'Name', value: 'name', sortable: false},
-            {text: 'Condition', value: 'condition', sortable: false},
-            {text: 'Result', value: 'action', sortable: false},
+            {text: 'Name', value: 'name', width: 300, sortable: false},
+            {text: '', value: '', sortable: false},
+            {text: 'Condition', value: 'condition', width: 500, sortable: false},
+            {text: 'Effect', value: 'action', width: 200, sortable: false},
+            {text: '', value: '', sortable: false},
             {text: 'Updated', value: 'updated', width: 0, sortable: false},
             {text: 'Created', value: 'created', width: 0, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
@@ -45,24 +48,24 @@
           <div class="d-flex flex flex-row align-center">
             <TooltipButton
                 small
-                color="success"
-                icon="mdi-arrow-up"
+                color="amber accent-3"
+                icon="mdi-run"
                 tooltip="Run Rule"
                 @click="run(item)"
             />
             <TooltipButton
                 v-if="item.status"
                 small
-                color="warning"
-                icon="mdi-pause"
+                color="light-green accent-3"
+                :icon="`mdi-toggle-switch-outline`"
                 tooltip="Pause Rule"
                 @click="item.status = false; save(item)"
             />
             <TooltipButton
                 v-else
                 small
-                color="success"
-                icon="mdi-play"
+                color="blue-grey"
+                :icon="`mdi-toggle-switch-off-outline`"
                 tooltip="Activate Rule"
                 @click="item.status = true; save(item)"
             />
@@ -76,7 +79,7 @@
             <TooltipButton
                 small
                 color="error"
-                icon="mdi-delete"
+                icon="mdi-delete-outline"
                 tooltip="Delete Rule"
                 @click="$refs.deleteDialog.load(item)"
             />
@@ -100,8 +103,8 @@ import ExpandButton from "@/components/buttons/ExpandButton";
 import Card from "@/models/Card";
 
 export default {
-  components: {ExpandButton, BiDialog, RuleDialog, TooltipButton},
   namespaced: true,
+  components: {ExpandButton, BiDialog, RuleDialog, TooltipButton},
 
   props: {
     card: Card,
@@ -175,22 +178,14 @@ export default {
     },
 
     save(item) {
-      if (item.scope && item.scope.size > 0) {
-        item.scope = Object.fromEntries(item.scope);
-      }
       this.busy = true
       this.$http
-          .put(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`, item, {
-            headers: {
-              'content-type':'application/json',
-            }
-          })
+          .put(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`, item)
           .then(result => {
             if (item.id) {
               this.items.splice(this.items.indexOf(this.items.find(i => i.id === item.id)), 1)
             }
             this.items.push(result.data)
-            console.log(result.data)
           })
           .then(() => this.add(Snack.OK('Rule Saved!')))
           .catch(error => this.add(Snack.Err(error)))
@@ -202,10 +197,7 @@ export default {
       this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/rule`)
-          .then(result => {
-            this.items = result.data
-            console.log(this.items)
-          })
+          .then(result => this.items = result.data)
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.loading = false)
     },
