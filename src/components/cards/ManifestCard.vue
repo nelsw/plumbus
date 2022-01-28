@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="card.visible" raised rounded elevation="24" class="mb-3" :loading="busy" :disabled="busy">
+  <v-card v-if="card.visible" raised rounded elevation="24" class="mb-3" :disabled="busy">
     <v-toolbar rounded>
       <v-icon v-text="card.icon" class="mr-3"/>
       <v-toolbar-title>
@@ -7,7 +7,7 @@
         <span v-text="card.subtitle" class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"/>
       </v-toolbar-title>
       <v-spacer/>
-      <TooltipButton icon="mdi-sync" tooltip="Sync Accounts" @click="refreshItems"/>
+      <TooltipButton icon="mdi-refresh" tooltip="Refresh Accounts" @click="refreshItems"/>
       <ExpandButton :domain="card.name" :expand="() => {card.expanded = !card.expanded}" :is-expanded="card.expanded"/>
       <TooltipButton icon="mdi-close" tooltip="Close" @click="card.visible = false"/>
     </v-toolbar>
@@ -15,7 +15,7 @@
       <v-data-table
           v-if="card.expanded"
           dense
-          item-key="account_id"
+          item-key="id"
           :items="items"
           page-text="Rows"
           :loading="loading"

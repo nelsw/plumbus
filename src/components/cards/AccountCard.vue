@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="card.visible" raised rounded elevation="24" class="mb-3" :loading="busy" :disabled="busy">
+  <v-card v-if="card.visible" raised rounded elevation="24" :disabled="busy">
     <v-toolbar>
       <v-icon v-text="card.icon" class="mr-3"/>
       <v-toolbar-title>
@@ -7,10 +7,12 @@
         <span v-text="card.subtitle" class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"/>
       </v-toolbar-title>
       <v-spacer/>
-      <FilterField v-if="!loading" :disabled="busy" ref="filter" @change="filter = $event"/>
+      <FilterField :disabled="busy" ref="filter" @change="filter = $event"/>
       <v-spacer/>
-      <v-switch v-if="!loading" v-model="activeOnly" color="primary" :label="statusSwitchLabel()" hide-details/>
+      <v-switch :disabled="busy" v-model="activeOnly" color="primary" :label="statusSwitchLabel()" hide-details/>
       <v-spacer/>
+      <ViewColumnMenu :columns="columns"/>
+      <TooltipButton icon="mdi-refresh" tooltip="Refresh Accounts" @click="refreshItems"/>
       <ExpandButton :domain="card.name" :expand="() => {card.expanded = !card.expanded}" :is-expanded="card.expanded"/>
       <TooltipButton icon="mdi-close" tooltip="Close" @click="card.visible = false"/>
     </v-toolbar>
@@ -18,33 +20,16 @@
       <v-data-table
           v-if="card.expanded"
           dense
+          sort-desc
           show-expand
-          sort-by="name"
-          :items="computedItems"
-          :expanded="expanded"
-          :loading="loading"
+          single-expand
+          sort-by="performance.roi"
           item-key="id"
-          :items-per-page="-1"
           hide-default-footer
-          :search="$refs.filter ? $refs.filter.$data.model : ''"
-          :headers="[
-            {text: 'ID', value: 'id', sortable: false, width: 0},
-            {text: 'Name', value: 'name', sortable: false},
-            {text: '', value: '', sortable: false},
-            {text: 'Active', value: 'performance.active', width: 100},
-            {text: 'Inactive', value: 'performance.inactive', width: 100},
-            {text: '', value: '', sortable: false},
-            {text: 'Spend', value: 'performance.spend', width: 100},
-            {text: 'Revenue', value: 'performance.revenue', width: 100},
-            {text: 'Profit', value: 'performance.profit', width: 100},
-            {text: '', value: '', sortable: false},
-            {text: 'ROI', value: 'performance.roi', width: 100, align: 'right'},
-            {text: '', value: '', sortable: false},
-            {text: 'Status', value: 'status', width: 0, sortable: false},
-            {text: 'Created', value: 'created_time', width: 75, sortable: false},
-            {text: '', value: '', width: 0, divider: true, sortable: false},
-            {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
-          ]"
+          :loading="busy"
+          :items="computedItems"
+          :items-per-page="-1"
+          :headers="headers"
       >
         <template v-slot:item.performance.spend="{ item }">
           {{ item.performance.spend_str }}
@@ -106,10 +91,11 @@ import {mapActions} from "vuex";
 import Card from "@/models/Card";
 import StatusButton from "@/components/buttons/AdStatusButton";
 import Chip from "@/components/chips/Chip";
+import ViewColumnMenu from "@/components/menus/ViewColumnMenu";
 
 export default {
   namespaced: true,
-  components: {Chip, StatusButton, TooltipButton, CampaignTable, ExpandButton, FilterField},
+  components: {ViewColumnMenu, Chip, StatusButton, TooltipButton, CampaignTable, ExpandButton, FilterField},
 
   props: {
     card: Card,
@@ -117,12 +103,22 @@ export default {
 
   data: () => ({
     busy: false,
-    show: true,
-    loading: true,
     items: [],
-    expanded: [],
     activeOnly: false,
     filter: null,
+    columns: [
+      {visible: true, text: 'ID', value: 'id', width: 0},
+      {visible: true, text: 'Name', value: 'name'},
+      {visible: true, text: 'Created', value: 'created_time', width: 75, sortable: false},
+      {visible: true, text: 'Active', value: 'performance.active', width: 100},
+      {visible: true, text: 'Inactive', value: 'performance.inactive', width: 100},
+      {visible: true, text: 'Spend', value: 'performance.spend', width: 100},
+      {visible: true, text: 'Revenue', value: 'performance.revenue', width: 100},
+      {visible: true, text: 'Profit', value: 'performance.profit', width: 100},
+      {visible: true, text: 'ROI', value: 'performance.roi', width: 100, align: 'center'},
+      {visible: true, text: '', value: '', width: 0, divider: true, sortable: false},
+      {visible: true, text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
+    ]
   }),
 
   mounted() {
@@ -136,9 +132,15 @@ export default {
         items = items.filter(item => item.account_status === 1)
       }
       if (this.filter && this.filter !== '') {
-        items = items.filter(item => item.name.toLowerCase().includes(this.filter.toLowerCase()))
+        items = items.filter(item => {
+          return item.name.toLowerCase().includes(this.filter.toLowerCase())
+              || item.id.includes(this.filter)
+        })
       }
       return items
+    },
+    headers() {
+      return this.columns.filter(column => column.visible)
     },
   },
 
@@ -152,20 +154,24 @@ export default {
       return `Any Status (${this.items.length})`
     },
 
+    refreshItems() {
+      this.busy = true
+      this.$http
+          .post(this.$api('account'))
+          .then(() => this.$refs.filter.$refs.field.focus())
+          .catch(error => this.add(Snack.Err(error)))
+          .finally(() => this.busy = false)
+    },
+
     fetchItems() {
-      this.loading = true
+      this.busy = true
       this.items = []
       this.$http
           .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/account?pos=in`)
           .then(result => this.items = result.data)
-          .then(() => this.$debug(this.items))
+          .then(() => this.$refs.filter.$refs.field.focus())
           .catch(error => this.add(Snack.Err(error)))
-          .finally(() => {
-            this.loading = false
-            if (this.$refs.filter) {
-              this.$refs.filter.$refs.field.focus()
-            }
-          })
+          .finally(() => this.busy = false)
     },
 
   },

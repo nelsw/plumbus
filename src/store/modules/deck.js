@@ -10,7 +10,7 @@ export default {
                 'Manifest',
                 'mdi-account-tie-hat',
                 'Accounts to include or exclude from PLUMBUS.',
-                true,false, false),
+                true,false, true),
 
             new Card(
                 'Rules',

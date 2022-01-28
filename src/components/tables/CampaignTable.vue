@@ -1,15 +1,17 @@
 <template>
-  <v-card raised rounded elevation="24" class="mb-3" style="width: 100%" :loading="busy">
+  <v-card raised rounded elevation="24" class="my-5" style="width: 100%" :loading="busy">
     <v-toolbar rounded dense>
       <TooltipButton icon="mdi-account-tie" tooltip="Refresh" @click="fetchItems"/>
       <v-toolbar-title>
         <span v-text="`Campaigns`"/>
       </v-toolbar-title>
       <v-spacer/>
-      <FilterField ref="filter"/>
+      <FilterField :disabled="busy" ref="filter" @change="filter = $event"/>
       <v-spacer/>
       <v-switch v-model="activeOnly" color="primary" :label="statusSwitchLabel()" hide-details/>
       <v-spacer/>
+      <ViewColumnMenu :columns="columns"/>
+      <TooltipButton icon="mdi-refresh" tooltip="Refresh Campaigns" @click="refreshItems"/>
       <TooltipButton
           v-if="fullscreen"
           icon="mdi-fullscreen"
@@ -28,37 +30,15 @@
     <v-data-table
         :loading="busy"
         dense
-        sort-by="roi"
         sort-desc
         must-sort
         hide-default-footer
-        :items-per-page="-1"
-        :items="computedItems"
-        :headers="[
-          {text: 'ID', value: 'id', sortable: false, width: 0},
-          {text: 'Name', value: 'name', sortable: false, width: 700},
-          {text: '', value: '', sortable: false},
-          {text: 'Budget', value: 'daily_budget', width: 100},
-          {text: 'Remainder', value: 'budget_remaining', width: 125},
-          {text: '', value: '', sortable: false},
-          {text: 'Clicks', value: 'clicks', width: 100},
-          {text: 'Imp', value: 'impressions', width: 100},
-          {text: '', value: '', sortable: false},
-          {text: 'CTR', value: 'ctr', width: 100},
-          {text: 'CPC', value: 'cpc', width: 100},
-          {text: 'CPM', value: 'cpm', width: 100},
-          {text: 'CPP', value: 'cpp', width: 100},
-          {text: '', value: '', sortable: false},
-          {text: 'Spend', value: 'spend', width: 100},
-          {text: 'Revenue', value: 'revenue', width: 100},
-          {text: 'Profit', value: 'profit', width: 100},
-          {text: '', value: '', sortable: false},
-          {text: 'ROI', value: 'roi', width: 100, align: 'center'},
-          {text: '', value: '', width: 0, divider: true, sortable: false},
-          {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
-        ]"
+        sort-by="roi"
         no-data-text="No Campaigns found for this Account"
         no-results-text="No Campaigns found for this Account"
+        :items-per-page="-1"
+        :headers="headers"
+        :items="computedItems"
     >
       <template v-slot:item.daily_budget="{ item }">
         {{ item.formatted.daily_budget }}
@@ -102,6 +82,9 @@
       <template v-slot:item.created_time="{ item }">
         {{ $moment(item.created_time).format("MM/DD/YY") }}
       </template>
+      <template v-slot:item.refreshed="{ item }">
+        {{ $moment(item.refreshed).utc().format("MM/DD/YY HH:mm:ss z") }}
+      </template>
       <template v-slot:item.data-table-expand="{isSelected, item}">
         <div class="d-flex flex flex-row align-center">
           <StatusButton :item="item"/>
@@ -119,9 +102,10 @@ import TooltipButton from "@/components/buttons/TooltipButton";
 import FilterField from "@/components/fields/FilterField";
 import StatusButton from "@/components/buttons/AdStatusButton";
 import Chip from "@/components/chips/Chip";
+import ViewColumnMenu from "@/components/menus/ViewColumnMenu";
 
 export default {
-  components: { Chip, StatusButton, FilterField, TooltipButton},
+  components: {ViewColumnMenu, Chip, StatusButton, FilterField, TooltipButton},
   namespaced: true,
 
   props: {
@@ -130,9 +114,31 @@ export default {
   },
 
   data: () => ({
+    filter: null,
     busy: true,
     activeOnly: false,
     items: [],
+    columns: [
+      {visible: true, text: 'ID', value: 'id', width: 0},
+      {visible: true, text: 'Name', value: 'name'},
+      {visible: true, text: 'Created', value: 'created_time', width: 100},
+      {visible: true, text: 'Updated', value: 'updated_time', width: 100},
+      {visible: true, text: 'Refreshed', value: 'refreshed', width: 200},
+      {visible: true, text: 'Budget', value: 'daily_budget', width: 100},
+      {visible: true, text: 'Remainder', value: 'budget_remaining', width: 125},
+      {visible: true, text: 'Clicks', value: 'clicks', width: 100},
+      {visible: true, text: 'Imp', value: 'impressions', width: 100},
+      {visible: true, text: 'CTR', value: 'ctr', width: 100},
+      {visible: true, text: 'CPC', value: 'cpc', width: 100},
+      {visible: true, text: 'CPM', value: 'cpm', width: 100},
+      {visible: true, text: 'CPP', value: 'cpp', width: 100},
+      {visible: true, text: 'Spend', value: 'spend', width: 100},
+      {visible: true, text: 'Revenue', value: 'revenue', width: 100},
+      {visible: true, text: 'Profit', value: 'profit', width: 100},
+      {visible: true, text: 'ROI', value: 'roi', width: 100, align: 'center'},
+      {visible: true, text: '', value: '', width: 0, divider: true, sortable: false},
+      {visible: true, text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
+    ]
   }),
 
   mounted() {
@@ -141,8 +147,20 @@ export default {
 
   computed: {
     computedItems() {
-      if (!this.activeOnly) return this.items
-      return this.items.filter(item => item.status === 'ACTIVE')
+      let items = this.items
+      if (this.activeOnly) {
+        items = items.filter(item => item.status === 'ACTIVE')
+      }
+      if (this.filter && this.filter !== '') {
+        items = items.filter(item => {
+          return item.name.toLowerCase().includes(this.filter.toLowerCase())
+              || item.id.includes(this.filter)
+        })
+      }
+      return items
+    },
+    headers() {
+      return this.columns.filter(column => column.visible)
     },
   },
 
@@ -154,6 +172,18 @@ export default {
         return `Active Only (${this.items.filter(item => item.status === 'ACTIVE').length})`
       }
       return `Any Status (${this.items.length})`
+    },
+
+    refreshItems() {
+      this.busy = true
+      this.items = []
+      this.$http
+          .put(this.$api('campaign') + `?accountID=${this.accountID}`)
+          .then(result => this.items = result.data)
+          .then(() => this.$debug(this.items))
+          .then(() => this.$refs.filter.$refs.field.focus())
+          .catch(error => this.add(Snack.Err(error)))
+          .finally(() => this.busy = false)
     },
 
     fetchItems() {
