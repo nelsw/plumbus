@@ -1,30 +1,18 @@
 <template>
   <v-card raised rounded elevation="24" class="my-5" style="width: 100%" :loading="busy">
     <v-toolbar rounded dense>
-      <TooltipButton icon="mdi-account-tie" tooltip="Refresh" @click="fetchItems"/>
+      <v-icon v-text="`mdi-account-tie`" class="mr-3"/>
       <v-toolbar-title>
         <span v-text="`Campaigns`"/>
       </v-toolbar-title>
       <v-spacer/>
-      <FilterField :disabled="busy" ref="filter" @change="filter = $event"/>
-      <v-spacer/>
+      <FilterField ref="filter" class="d-flex flex-grow-0 flex-shrink-1" :disabled="busy" @change="filter = $event"/>
+      <v-divider vertical inset class="ml-5 mr-2"/>
       <v-switch v-model="activeOnly" color="primary" :label="statusSwitchLabel()" hide-details/>
-      <v-spacer/>
       <ViewColumnMenu :columns="columns"/>
       <TooltipButton icon="mdi-refresh" tooltip="Refresh Campaigns" @click="refreshItems"/>
-      <TooltipButton
-          v-if="fullscreen"
-          icon="mdi-fullscreen"
-          tooltip="Fullscreen"
-          @click="$emit('open')"
-      />
-      <TooltipButton
-          v-else
-          left
-          icon="mdi-close"
-          tooltip="Close Fullscreen"
-          @click="$emit('close')"
-      />
+      <TooltipButton v-if="fullscreen" icon="mdi-fullscreen" tooltip="Fullscreen" @click="$emit('open')"/>
+      <TooltipButton v-else left icon="mdi-close" tooltip="Close Fullscreen" @click="$emit('close')"/>
     </v-toolbar>
 
     <v-data-table
@@ -147,17 +135,10 @@ export default {
 
   computed: {
     computedItems() {
-      let items = this.items
-      if (this.activeOnly) {
-        items = items.filter(item => item.status === 'ACTIVE')
-      }
-      if (this.filter && this.filter !== '') {
-        items = items.filter(item => {
-          return item.name.toLowerCase().includes(this.filter.toLowerCase())
-              || item.id.includes(this.filter)
-        })
-      }
-      return items
+      if (!this.filter || this.filter === '') return this.items
+      return this.items.filter(item =>
+          item.name.toLowerCase().includes(this.filter.toLowerCase()) ||
+          item.id.includes(this.filter))
     },
     headers() {
       return this.columns.filter(column => column.visible)
@@ -180,7 +161,6 @@ export default {
       this.$http
           .put(this.$api('campaign') + `?accountID=${this.accountID}`)
           .then(result => this.items = result.data)
-          .then(() => this.$debug(this.items))
           .then(() => this.$refs.filter.$refs.field.focus())
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.busy = false)
@@ -192,20 +172,10 @@ export default {
       this.$http
           .get(this.$api('campaign') + `?accountID=${this.accountID}`)
           .then(result => this.items = result.data)
-          .then(() => this.$debug(this.items))
-          .then(() => {
-            if (this.$refs.filter) {
-              this.$refs.filter.$refs.field.focus()
-            }
-          })
-          .catch(error => {
-            if (error.response.status !== 404) {
-              this.add(Snack.Err(error))
-            }
-          })
+          .then(() => this.$refs.filter.$refs.field.focus())
+          .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.busy = false)
-    }
-
+    },
   },
 }
 </script>

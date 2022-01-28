@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="card.visible" raised rounded elevation="24" class="mb-3" :disabled="busy">
+  <v-card raised rounded elevation="24" :disabled="busy">
     <v-toolbar rounded>
       <v-icon v-text="card.icon" class="mr-3"/>
       <v-toolbar-title>
@@ -7,6 +7,9 @@
         <span v-text="card.subtitle" class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"/>
       </v-toolbar-title>
       <v-spacer/>
+      <FilterField ref="filter" class="d-flex flex-grow-0 flex-shrink-1" :disabled="busy" @change="filter = $event"/>
+      <v-divider vertical inset class="ml-5 mr-2"/>
+      <ViewColumnMenu :columns="columns"/>
       <TooltipButton icon="mdi-refresh" tooltip="Refresh Accounts" @click="refreshItems"/>
       <ExpandButton :domain="card.name" :expand="() => {card.expanded = !card.expanded}" :is-expanded="card.expanded"/>
       <TooltipButton icon="mdi-close" tooltip="Close" @click="card.visible = false"/>
@@ -16,29 +19,17 @@
           v-if="card.expanded"
           dense
           item-key="id"
-          :items="items"
-          page-text="Rows"
-          :loading="loading"
-          :headers="[
-            {text: 'Name', value: 'name', sortable: true},
-            {text: 'Status', value: 'status', width: 0, sortable: false},
-            {text: 'Created', value: 'created_time', width: 100, sortable: true},
-            {text: '', value: '', width: 0, divider: true, sortable: false},
-            {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
-          ]"
+          sort-by="name"
+          :loading="busy"
+          :items="computedItems"
+          :headers="headers"
       >
         <template v-slot:item.created_time="{ item }">
           {{ $moment(item.created_time).format("MM/DD/YY") }}
         </template>
         <template v-slot:item.data-table-expand="{isSelected, item}">
           <div class="d-flex flex flex-row align-center">
-            <TooltipButton
-                small
-                :color="item.included ? 'blue-grey' : 'light-green accent-3'"
-                :icon="`mdi-toggle-switch${item.included ? '' : '-off'}-outline`"
-                :tooltip="`${item.included ? 'Ex' : 'In'}clude Account`"
-                @click="toggleInclusion(item)"
-            />
+            <AdStatusButton :item="item"/>
           </div>
         </template>
       </v-data-table>
@@ -52,10 +43,13 @@ import Snack from "@/models/Snack";
 import {mapActions} from "vuex";
 import Card from "@/models/Card";
 import ExpandButton from "@/components/buttons/ExpandButton";
+import ViewColumnMenu from "@/components/menus/ViewColumnMenu";
+import FilterField from "@/components/fields/FilterField";
+import AdStatusButton from "@/components/buttons/AdStatusButton";
 
 export default {
   namespaced: true,
-  components: {ExpandButton, TooltipButton},
+  components: {AdStatusButton, FilterField, ViewColumnMenu, ExpandButton, TooltipButton},
 
   props: {
     card: Card,
@@ -63,47 +57,56 @@ export default {
 
   data: () => ({
     busy: false,
-    show: true,
-    loading: true,
+    filter: null,
     items: [],
-    expanded: [],
+    columns: [
+      {visible: true, text: 'ID', value: 'id', width: 0},
+      {visible: true, text: 'Name', value: 'name'},
+      {visible: true, text: 'Created', value: 'created_time', width: 75, sortable: false},
+      {visible: true, text: '', value: '', width: 0, divider: true, sortable: false},
+      {visible: true, text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
+    ]
   }),
 
   mounted() {
     this.fetchItems()
   },
 
+  computed: {
+    computedItems() {
+      if (!this.filter || this.filter === '') return this.items
+      return this.items.filter(item =>
+          item.name.toLowerCase().includes(this.filter.toLowerCase()) ||
+          item.id.includes(this.filter))
+    },
+    headers() {
+      return this.columns.filter(column => column.visible)
+    },
+  },
+
   methods: {
     ...mapActions('snack', ['add']),
 
-    toggleInclusion(item) {
+    fetchItems() {
       this.busy = true
+      this.items = []
       this.$http
-          .patch(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/account?id=${item.account_id}`)
-          .then(() => this.add(Snack.OK(`Account ${item.included ? 'Ex' : 'In'}cluded`)))
+          .get(this.$api('account') + `?pos=all`)
+          .then(result => this.items = result.data)
+          .then(() => this.$refs.filter.$refs.field.focus())
           .catch(error => this.add(Snack.Err(error)))
           .finally(() => this.busy = false)
     },
 
-    fetchItems() {
-      this.loading = true
-      this.items = []
-      this.$http
-          .get(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/account?pos=all`)
-          .then(result => this.items = result.data)
-          .catch(error => this.add(Snack.Err(error)))
-          .finally(() => this.loading = false)
-    },
-
     refreshItems() {
-      this.loading = true
-      this.items = []
+      this.busy = true
       this.$http
-          .put(`https://bj9x2qbryf.execute-api.us-east-1.amazonaws.com/dev/account`)
+          .put(this.$api('account'))
           .then(result => this.items = result.data)
+          .then(() => this.$refs.filter.$refs.field.focus())
           .then(() => this.add(Snack.OK('Manifest Refreshed')))
           .catch(error => this.add(Snack.Err(error)))
-          .finally(() => this.loading = false)
+          .finally(() => this.busy = false)
     },
   },
 

@@ -1,5 +1,5 @@
 <template>
-  <v-card v-if="card.visible" raised rounded elevation="24" class="mb-3" :loading="busy" :disabled="busy">
+  <v-card raised rounded elevation="24" :disabled="busy">
     <v-toolbar rounded>
       <v-icon v-text="card.icon" class="mr-3"/>
       <v-toolbar-title>
