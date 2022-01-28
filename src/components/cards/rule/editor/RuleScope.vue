@@ -132,7 +132,7 @@ export default {
       this.scope = null
       this.busy = true
       this.$http
-          .get(this.$api('account') + `?pos=in`)
+          .get(this.$api('account') + `?pos=fam`)
           .then(result => this.items = result.data)
           .then(() => {
             this.legend = new Map()
