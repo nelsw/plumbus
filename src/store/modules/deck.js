@@ -10,13 +10,13 @@ export default {
                 'Manifest',
                 'mdi-account-tie-hat',
                 'Accounts to include or exclude from PLUMBUS.',
-                true,true, false),
+                true,false, false),
 
             new Card(
                 'Rules',
                 'mdi-account-hard-hat',
                 'Conditions to autonomously control Ad visibility.',
-                true, true, true),
+                true, true, false),
 
             new Card(
                 'Accounts',
