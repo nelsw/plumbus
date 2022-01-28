@@ -24,6 +24,8 @@
           :expanded="expanded"
           :loading="loading"
           item-key="account_id"
+          :items-per-page="-1"
+          hide-default-footer
           :search="$refs.filter ? $refs.filter.$data.model : ''"
           :headers="[
             {text: 'ID', value: 'id', sortable: false, width: 0},
