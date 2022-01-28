@@ -23,7 +23,7 @@
           :items="computedItems"
           :expanded="expanded"
           :loading="loading"
-          item-key="account_id"
+          item-key="id"
           :items-per-page="-1"
           hide-default-footer
           :search="$refs.filter ? $refs.filter.$data.model : ''"
@@ -31,14 +31,14 @@
             {text: 'ID', value: 'id', sortable: false, width: 0},
             {text: 'Name', value: 'name', sortable: false},
             {text: '', value: '', sortable: false},
-            {text: 'Active', value: 'active', width: 100},
-            {text: 'Inactive', value: 'inactive', width: 100},
+            {text: 'Active', value: 'performance.active', width: 100},
+            {text: 'Inactive', value: 'performance.inactive', width: 100},
             {text: '', value: '', sortable: false},
-            {text: 'Spend', value: 'spend', width: 100},
-            {text: 'Revenue', value: 'revenue', width: 100},
-            {text: 'Profit', value: 'profit', width: 100},
+            {text: 'Spend', value: 'performance.spend', width: 100},
+            {text: 'Revenue', value: 'performance.revenue', width: 100},
+            {text: 'Profit', value: 'performance.profit', width: 100},
             {text: '', value: '', sortable: false},
-            {text: 'ROI', value: 'roi', width: 100, align: 'right'},
+            {text: 'ROI', value: 'performance.roi', width: 100, align: 'right'},
             {text: '', value: '', sortable: false},
             {text: 'Status', value: 'status', width: 0, sortable: false},
             {text: 'Created', value: 'created_time', width: 75, sortable: false},
@@ -46,22 +46,22 @@
             {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
           ]"
       >
-        <template v-slot:item.spend="{ item }">
+        <template v-slot:item.performance.spend="{ item }">
           {{ item.performance.spend_str }}
         </template>
-        <template v-slot:item.revenue="{ item }">
+        <template v-slot:item.performance.revenue="{ item }">
           {{ item.performance.revenue_str }}
         </template>
-        <template v-slot:item.profit="{ item }">
+        <template v-slot:item.performance.profit="{ item }">
           {{ item.performance.profit_str }}
         </template>
-        <template v-slot:item.roi="{ item }">
+        <template v-slot:item.performance.roi="{ item }">
           <Chip small :float="item.performance.roi" :text="item.performance.roi_str"/>
         </template>
-        <template v-slot:item.active="{ item }">
+        <template v-slot:item.performance.active="{ item }">
           {{ item.performance.active_str }}
         </template>
-        <template v-slot:item.inactive="{ item }">
+        <template v-slot:item.performance.inactive="{ item }">
           {{ item.performance.inactive_str }}
         </template>
         <template v-slot:item.created_time="{ item }">
