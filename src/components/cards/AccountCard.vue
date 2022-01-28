@@ -28,19 +28,53 @@
           :headers="[
             {text: 'ID', value: 'id', sortable: false, width: 0},
             {text: 'Name', value: 'name', sortable: false},
+            {text: '', value: '', sortable: false},
+            {text: 'Active', value: 'active', width: 100},
+            {text: 'Inactive', value: 'inactive', width: 100},
+            {text: '', value: '', sortable: false},
+            {text: 'Spend', value: 'spend', width: 100},
+            {text: 'Revenue', value: 'revenue', width: 100},
+            {text: 'Profit', value: 'profit', width: 100},
+            {text: '', value: '', sortable: false},
+            {text: 'ROI', value: 'roi', width: 100, align: 'right'},
+            {text: '', value: '', sortable: false},
             {text: 'Status', value: 'status', width: 0, sortable: false},
             {text: 'Created', value: 'created_time', width: 75, sortable: false},
             {text: '', value: '', width: 0, divider: true, sortable: false},
             {text: '', value: 'data-table-expand', width: 0, align: 'center', sortable: false}
           ]"
       >
+        <template v-slot:item.spend="{ item }">
+          {{ item.performance.spend_str }}
+        </template>
+        <template v-slot:item.revenue="{ item }">
+          {{ item.performance.revenue_str }}
+        </template>
+        <template v-slot:item.profit="{ item }">
+          {{ item.performance.profit_str }}
+        </template>
+        <template v-slot:item.roi="{ item }">
+          <Chip small :float="item.performance.roi" :text="item.performance.roi_str"/>
+        </template>
+        <template v-slot:item.active="{ item }">
+          {{ item.performance.active_str }}
+        </template>
+        <template v-slot:item.inactive="{ item }">
+          {{ item.performance.inactive_str }}
+        </template>
         <template v-slot:item.created_time="{ item }">
           {{ $moment(item.created_time).format("MM/DD/YY") }}
         </template>
         <template v-slot:item.data-table-expand="{isSelected, item, expand, isExpanded}">
           <div class="d-flex flex flex-row align-center">
             <StatusButton :item="item"/>
-            <ExpandButton small domain="Account" :expand="expand" :is-expanded="isExpanded"/>
+            <ExpandButton
+                small
+                domain="Account"
+                :expand="expand"
+                :is-expanded="isExpanded"
+                :disabled="item.performance.active + item.performance.inactive < 1"
+            />
           </div>
         </template>
         <template v-slot:expanded-item="{ headers, item }">
@@ -69,10 +103,11 @@ import Snack from "@/models/Snack";
 import {mapActions} from "vuex";
 import Card from "@/models/Card";
 import StatusButton from "@/components/buttons/AdStatusButton";
+import Chip from "@/components/chips/Chip";
 
 export default {
   namespaced: true,
-  components: {StatusButton, TooltipButton, CampaignTable, ExpandButton, FilterField},
+  components: {Chip, StatusButton, TooltipButton, CampaignTable, ExpandButton, FilterField},
 
   props: {
     card: Card,
