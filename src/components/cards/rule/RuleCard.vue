@@ -48,8 +48,8 @@
           <div class="d-flex flex flex-row align-center">
             <TooltipButton
                 small
-                color="deep-purple lighten-1"
-                icon="mdi-hammer"
+                color="amber accent-3"
+                icon="mdi-run"
                 tooltip="Run Rule"
                 @click="run(item)"
             />
