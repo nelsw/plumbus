@@ -7,7 +7,7 @@
         <span v-text="card.subtitle" class="subtitle-2 font-weight-light ml-5 hidden-sm-and-down"/>
       </v-toolbar-title>
       <v-spacer/>
-      <FilterField v-if="!loading" ref="filter"/>
+      <FilterField v-if="!loading" :disabled="busy" ref="filter" @change="filter = $event"/>
       <v-spacer/>
       <v-switch v-if="!loading" v-model="activeOnly" color="primary" :label="statusSwitchLabel()" hide-details/>
       <v-spacer/>
@@ -122,6 +122,7 @@ export default {
     items: [],
     expanded: [],
     activeOnly: true,
+    filter: null,
   }),
 
   mounted() {
@@ -130,8 +131,14 @@ export default {
 
   computed: {
     computedItems() {
-      if (!this.activeOnly) return this.items
-      return this.items.filter(item => item.account_status === 1)
+      let items = this.items
+      if (this.activeOnly) {
+        items = items.filter(item => item.account_status === 1)
+      }
+      if (this.filter && this.filter !== '') {
+        items = items.filter(item => item.name.toLowerCase().includes(this.filter.toLowerCase()))
+      }
+      return items
     },
   },
 
