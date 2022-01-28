@@ -131,7 +131,7 @@ export default {
 
   data: () => ({
     busy: true,
-    activeOnly: true,
+    activeOnly: false,
     items: [],
   }),
 

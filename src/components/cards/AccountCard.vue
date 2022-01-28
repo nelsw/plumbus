@@ -121,7 +121,7 @@ export default {
     loading: true,
     items: [],
     expanded: [],
-    activeOnly: true,
+    activeOnly: false,
     filter: null,
   }),
 
