@@ -135,10 +135,16 @@ export default {
 
   computed: {
     computedItems() {
-      if (!this.filter || this.filter === '') return this.items
-      return this.items.filter(item =>
-          item.name.toLowerCase().includes(this.filter.toLowerCase()) ||
-          item.id.includes(this.filter))
+      let items = this.items
+      if (this.filter && this.filter !== '') {
+        items = items.filter(item =>
+            item.name.toLowerCase().includes(this.filter.toLowerCase()) ||
+            item.id.includes(this.filter))
+      }
+      if (this.activeOnly) {
+        items = items.filter(item => item.status === 'ACTIVE')
+      }
+      return items
     },
     headers() {
       return this.columns.filter(column => column.visible)
