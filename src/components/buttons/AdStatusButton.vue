@@ -73,7 +73,7 @@ export default {
       let accountID = this.item.account_id
       let status = this.isActive() ? 'PAUSED' : 'ACTIVE'
       this.$http
-          .patch(this.$api('campaign') + `?accountID=${accountID}&campaignIDS=${ID}&status=${status}`)
+          .patch(this.$api('campaign') + `?accountID=${accountID}&ID=${ID}&status=${status}`)
           .then(() => this.item.status = status)
           .then(() => this.add(Snack.OK(`Campaign ${ID} ${status}!`)))
           .catch(error => this.add(Snack.Err(error)))
