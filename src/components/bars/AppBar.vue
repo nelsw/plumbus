@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import moment from "moment";
+// import moment from "moment";
 import moment_tz from "moment-timezone";
 import Logo from "@/components/arts/Logo";
 import MainMenu from "@/components/menus/MainMenu";
@@ -34,7 +34,8 @@ export default {
   }),
 
   mounted() {
-    this.tz = moment.tz.guess()
+    // this.tz = moment.tz.guess()
+    this.tz = this.choices[0]
     this.updateTimestamp()
   },
 

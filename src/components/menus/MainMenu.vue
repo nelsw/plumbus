@@ -15,7 +15,7 @@
             <v-list-item-title v-text="card.name"/>
           </v-list-item-content>
           <v-list-item-action>
-            <v-switch color="primary" :input-value="card.visible" @change="card.visible = !card.visible"/>
+            <v-switch color="primary" :input-value="card.visible" @change="change(card)"/>
           </v-list-item-action>
         </v-list-item>
       </v-list>
@@ -34,6 +34,13 @@ export default {
 
   computed: {
     ...mapGetters('deck', ['getCard', 'getDeck']),
+  },
+
+  methods: {
+    change(card) {
+      card.visible = !card.visible
+      if (card.visible) card.expanded = true
+    }
   },
 }
 </script>
