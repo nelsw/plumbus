@@ -1,5 +1,5 @@
 <template>
-  <v-card raised rounded elevation="24" class="my-5" style="width: 100%" :loading="busy">
+  <v-card raised rounded elevation="24" class="my-5" style="width: 100%">
     <v-toolbar rounded dense>
       <v-icon v-text="`mdi-account-tie`" class="mr-3"/>
       <v-toolbar-title>
